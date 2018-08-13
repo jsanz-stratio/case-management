@@ -4,6 +4,7 @@ import com.stratio.casemanagement.config.SwaggerConfiguration;
 import com.stratio.casemanagement.model.controller.CaseRequest;
 import com.stratio.casemanagement.model.mapper.CaseRequestControllerServiceMapper;
 import com.stratio.casemanagement.service.CaseRequestService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -14,7 +15,7 @@ import static com.stratio.casemanagement.controller.CaseRequestController.API_VE
 
 @RestController
 @RequestMapping(value = SwaggerConfiguration.API_PREFIX + API_VERSION + API_BASE_PATH)
-// TODO: Logger!
+@Slf4j
 public class CaseRequestController {
     public static final String API_VERSION = "/v1";
     public static final String API_BASE_PATH = "/case-requests";
@@ -31,7 +32,14 @@ public class CaseRequestController {
     @RequestMapping(path = "/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public ResponseEntity<?> getCaseRequestById(@PathVariable("id") Long id) {
+
+        log.info("Entering request {}{}/{}", API_VERSION, API_BASE_PATH, id);
+        log.debug("Entering CaseRequestController.getCaseRequestById with parameters: {}", id);
+
         CaseRequest result = mapper.mapBToA(caseRequestService.getCaseRequestById(id));
+
+        log.debug("Exiting CaseRequestController.getCaseRequestById with result: {}" + result);
+
         if (result != null) {
             return ResponseEntity.ok(result);
         } else {

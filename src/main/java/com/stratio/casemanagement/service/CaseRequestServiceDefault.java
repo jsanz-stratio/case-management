@@ -3,11 +3,12 @@ package com.stratio.casemanagement.service;
 import com.stratio.casemanagement.model.mapper.CaseRequestServiceRepositoryMapper;
 import com.stratio.casemanagement.model.service.CaseRequest;
 import com.stratio.casemanagement.repository.CaseRequestRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-// TODO: Logger!
+@Slf4j
 public class CaseRequestServiceDefault implements CaseRequestService {
 
     private final CaseRequestRepository caseRequestRepository;
@@ -21,6 +22,9 @@ public class CaseRequestServiceDefault implements CaseRequestService {
 
     @Override
     public CaseRequest getCaseRequestById(Long id) {
-        return mapper.mapBToA(caseRequestRepository.getCaseRequestById(id));
+        log.debug("Entering CaseRequestServiceDefault.getCaseRequestById with parameters: {}", id);
+        CaseRequest result = mapper.mapBToA(caseRequestRepository.getCaseRequestById(id));
+        log.debug("Exiting CaseRequestServiceDefault.getCaseRequestById with result: {}" + result);
+        return result;
     }
 }
