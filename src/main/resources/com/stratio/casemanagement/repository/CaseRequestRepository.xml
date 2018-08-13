@@ -1,0 +1,22 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.stratio.casemanagement.repository.CaseRequestRepository">
+
+    <resultMap id="caseRequestResult" type="com.stratio.casemanagement.model.repository.CaseRequest">
+        <result property="id" column="id" />
+        <result property="creationDate" column="creation_date" />
+        <result property="creationUser" column="creation_user" />
+        <result property="modificationDate" column="modification_date" />
+        <result property="modificationUser" column="modification_user" />
+        <result property="entityId" column="entity" />
+    </resultMap>
+
+    <select id="getCaseRequestById" resultMap="caseRequestResult">
+        SELECT
+            id, entity, creation_date, creation_user, modification_date, modification_user
+        FROM
+            applications.case_request
+        WHERE
+            id = #{id}
+    </select>
+</mapper>
