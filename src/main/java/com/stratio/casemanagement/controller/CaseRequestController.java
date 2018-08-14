@@ -8,6 +8,7 @@ import com.stratio.casemanagement.model.mapper.CaseRequestServiceToCaseRequestRe
 import com.stratio.casemanagement.service.CaseRequestService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -48,8 +49,7 @@ public class CaseRequestController {
 
         return ResponseEntity.created(new URI(generateLocationURIForCaseRequest(result))).body(result);
 
-        // TODO: Perform validations!!
-        // TODO: Controller advice!
+        // TODO: Perform validations on: entityId
     }
 
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -67,6 +67,26 @@ public class CaseRequestController {
             return ResponseEntity.ok(result);
         } else {
             return ResponseEntity.notFound().build();
+        }
+    }
+
+    @DeleteMapping(path = "/{id}")
+    @ResponseBody
+    public ResponseEntity<?> deleteCaseRequestById(@PathVariable("id") Long id) {
+        log.info("Entering request (DELETE) {}{}/{}", API_VERSION, API_BASE_PATH, id);
+        log.debug("Entering CaseRequestController.deleteCaseRequestById with parameters: {}", id);
+
+        int affectedRows = caseRequestService.deleteCaseRequestById(id);
+
+        log.debug("CaseRequestController.deleteCaseRequestById affected rows number: {}" + affectedRows);
+
+        if (affectedRows == 1) {
+            return ResponseEntity.ok().build();
+        } else if (affectedRows == 0) {
+            return ResponseEntity.notFound().build();
+        } else {
+            log.error("CaseRequestController.deleteCaseRequestById must delete zero or one rows. Ir deleted {} instead", affectedRows);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 

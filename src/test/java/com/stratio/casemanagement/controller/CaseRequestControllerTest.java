@@ -31,6 +31,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -102,7 +103,7 @@ public class CaseRequestControllerTest {
 
         // When, then
         mockMvc.perform(
-                get(URL_BASE + URL_CASE_REQUESTS_RESOURCE + URL_CASE_REQUEST_BY_ID_SUBRESOURCE, 42L)
+                get(URL_BASE + URL_CASE_REQUESTS_RESOURCE + URL_CASE_REQUEST_BY_ID_SUBRESOURCE, testId)
                         .accept(MediaType.APPLICATION_JSON_UTF8)
         )
                 .andExpect(status().isNotFound())
@@ -121,7 +122,7 @@ public class CaseRequestControllerTest {
 
         // When, then
         mockMvc.perform(
-                get(URL_BASE + URL_CASE_REQUESTS_RESOURCE + URL_CASE_REQUEST_BY_ID_SUBRESOURCE, 42L)
+                get(URL_BASE + URL_CASE_REQUESTS_RESOURCE + URL_CASE_REQUEST_BY_ID_SUBRESOURCE, testId)
                         .accept(MediaType.APPLICATION_JSON_UTF8)
         )
                 .andExpect(status().isOk())
@@ -136,7 +137,52 @@ public class CaseRequestControllerTest {
         verify(mockService).getCaseRequestById(eq(testId));
     }
 
-    // TODO: Test for when can't insert
+    @Test
+    public void whenDeleteCaseRequestByIdGivenZeroRowsAffectedThenReturn404() throws Exception {
+        // Given
+        final Long testId = 42L;
+        when(mockService.deleteCaseRequestById(any(Long.class))).thenReturn(0);
+
+        // When, then
+        mockMvc.perform(
+                delete(URL_BASE + URL_CASE_REQUESTS_RESOURCE + URL_CASE_REQUEST_BY_ID_SUBRESOURCE, testId)
+        )
+                .andExpect(status().isNotFound());
+
+        verify(mockService).deleteCaseRequestById(eq(testId));
+    }
+
+    @Test
+    public void whenDeleteCaseRequestByIdGivenOneRowAffectedThenReturn200() throws Exception {
+        // Given
+        final Long testId = 42L;
+        when(mockService.deleteCaseRequestById(any(Long.class))).thenReturn(1);
+
+
+        // When, then
+        mockMvc.perform(
+                delete(URL_BASE + URL_CASE_REQUESTS_RESOURCE + URL_CASE_REQUEST_BY_ID_SUBRESOURCE, testId)
+        )
+                .andExpect(status().isOk());
+
+        verify(mockService).deleteCaseRequestById(eq(testId));
+    }
+
+    @Test
+    public void whenDeleteCaseRequestByIdGivenMoreThanOneRowAffectedThenReturn500() throws Exception {
+        // Given
+        final Long testId = 42L;
+        when(mockService.deleteCaseRequestById(any(Long.class))).thenReturn(2);
+
+
+        // When, then
+        mockMvc.perform(
+                delete(URL_BASE + URL_CASE_REQUESTS_RESOURCE + URL_CASE_REQUEST_BY_ID_SUBRESOURCE, testId)
+        )
+                .andExpect(status().isInternalServerError());
+
+        verify(mockService).deleteCaseRequestById(eq(testId));
+    }
 
     private String generateExpectedLocationUri(CaseRequest resultCaseRequestFromService) {
         return API_PREFIX + API_VERSION + API_BASE_PATH + "/" + resultCaseRequestFromService.getId();

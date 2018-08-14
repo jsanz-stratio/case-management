@@ -26,4 +26,9 @@
         VALUES
             (#{entityId}, #{creationDate}, #{creationUser}, #{modificationDate}, #{modificationUser})
     </insert>
+
+    <delete id="deleteCaseRequest">
+        DELETE FROM applications.case_request
+        WHERE id = #{id}
+    </delete>
 </mapper>

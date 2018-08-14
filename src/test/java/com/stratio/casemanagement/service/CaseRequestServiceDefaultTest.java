@@ -37,6 +37,23 @@ public class CaseRequestServiceDefaultTest {
     private PodamFactory podamFactory = new PodamFactoryImpl();
 
     @Test
+    public void whenDeleteCaseRequestByIdGivenResultThenReturnAffectedRows() {
+        // Given
+        final Long testId = 44L;
+        final int returnedAffectedRowsFromRepository = 232;
+
+        when(mockRepository.deleteCaseRequest(any(Long.class))).thenReturn(returnedAffectedRowsFromRepository);
+
+        // When
+        int result = classUnderTest.deleteCaseRequestById(testId);
+
+        // Then
+        assertThat(result, is(returnedAffectedRowsFromRepository));
+
+        verify(mockRepository).deleteCaseRequest(eq(testId));
+    }
+
+    @Test
     public void whenGetCaseRequestByIdGivenNullResultThenReturnNull() {
         // Given
         final Long testId = 66L;

@@ -8,4 +8,5 @@ import org.apache.ibatis.annotations.Param;
 public interface CaseRequestRepository {
     CaseRequest getCaseRequestById(@Param("id") Long id);
     void insertCaseRequest(CaseRequest caseRequest);
+    int deleteCaseRequest(@Param("id") Long id);
 }

@@ -28,7 +28,7 @@ public class CaseRequestServiceDefault implements CaseRequestService {
 
         CaseRequest result = mapper.mapBToA(caseRequestRepository.getCaseRequestById(id));
 
-        log.debug("Exiting CaseRequestServiceDefault.getCaseRequestById with result: {}" + result);
+        log.debug("Exiting CaseRequestServiceDefault.getCaseRequestById with result: {}", result);
 
         return result;
     }
@@ -43,9 +43,20 @@ public class CaseRequestServiceDefault implements CaseRequestService {
         caseRequestRepository.insertCaseRequest(repositoryCaseRequest);
         CaseRequest result = mapper.mapBToA(repositoryCaseRequest);
 
-        log.debug("Exiting CaseRequestServiceDefault.insertCaseRequest with result: {}" + result);
+        log.debug("Exiting CaseRequestServiceDefault.insertCaseRequest with result: {}", result);
 
         return result;
+    }
+
+    @Override
+    public int deleteCaseRequestById(Long id) {
+        log.debug("Entering CaseRequestServiceDefault.deleteCaseRequestById with parameters: {}", id);
+
+        int affectedRows = caseRequestRepository.deleteCaseRequest(id);
+
+        log.debug("Exiting CaseRequestServiceDefault.deleteCaseRequestById with result: {}", affectedRows);
+
+        return affectedRows;
     }
 
     private void setDatesAtCreationTime(CaseRequest caseRequest) {
