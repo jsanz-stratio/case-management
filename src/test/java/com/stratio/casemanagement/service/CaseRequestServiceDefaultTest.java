@@ -1,17 +1,18 @@
 package com.stratio.casemanagement.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stratio.casemanagement.model.mapper.CaseRequestServiceRepositoryMapper;
 import com.stratio.casemanagement.model.mapper.CaseRequestServiceRepositoryMapperImpl;
 import com.stratio.casemanagement.model.service.CaseRequest;
 import com.stratio.casemanagement.repository.CaseRequestRepository;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Spy;
+import org.mockito.*;
 import org.mockito.junit.MockitoJUnitRunner;
 import uk.co.jemos.podam.api.PodamFactory;
 import uk.co.jemos.podam.api.PodamFactoryImpl;
+
+import java.time.LocalDateTime;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -32,6 +33,9 @@ public class CaseRequestServiceDefaultTest {
     private CaseRequestServiceRepositoryMapper spyMapper = new CaseRequestServiceRepositoryMapperImpl();
     @InjectMocks
     private CaseRequestServiceDefault classUnderTest;
+
+    @Captor
+    private ArgumentCaptor<com.stratio.casemanagement.model.repository.CaseRequest> repoCaseRequestCaptor;
 
     private PodamFactory podamFactory = new PodamFactoryImpl();
 
@@ -69,17 +73,43 @@ public class CaseRequestServiceDefaultTest {
         verify(mockRepository).getCaseRequestById(eq(testId));
     }
 
-    private void compareServiceAndRepositoryBeans(com.stratio.casemanagement.model.repository.CaseRequest resultCaseRequestFromRepo,
-                                                  CaseRequest resultCaseRequest) {
-        assertThat(resultCaseRequest.getId(), is(resultCaseRequestFromRepo.getId()));
-        assertThat(resultCaseRequest.getEntityId(), is(resultCaseRequestFromRepo.getEntityId()));
-        assertThat(resultCaseRequest.getCreationDate(), is(resultCaseRequestFromRepo.getCreationDate()));
-        assertThat(resultCaseRequest.getModificationDate(), is(resultCaseRequestFromRepo.getModificationDate()));
-        assertThat(resultCaseRequest.getCreationUser(), is(resultCaseRequestFromRepo.getCreationUser()));
-        assertThat(resultCaseRequest.getModificationUser(), is(resultCaseRequestFromRepo.getModificationUser()));
+    @Test
+    public void whenInsertCaseRequestGivenValidInputThenCheckResultMapping() {
+        // Given
+        final CaseRequest testServiceCaseRequest = generateCaseRequestService();
+
+        final com.stratio.casemanagement.model.repository.CaseRequest resultCaseRequestFromRepo = generateCaseRequestRepository();
+
+        // When
+        CaseRequest resultCaseRequest = classUnderTest.insertCaseRequest(testServiceCaseRequest);
+
+        // Then
+        verifyRepositoryCalled(testServiceCaseRequest);
+
+    }
+
+    // TODO: Test error cases!!
+
+    private void compareServiceAndRepositoryBeans(com.stratio.casemanagement.model.repository.CaseRequest repositoryBean, CaseRequest serviceBean) {
+        assertThat(serviceBean.getId(), is(repositoryBean.getId()));
+        assertThat(serviceBean.getEntityId(), is(repositoryBean.getEntityId()));
+        assertThat(serviceBean.getCreationDate(), is(repositoryBean.getCreationDate()));
+        assertThat(serviceBean.getModificationDate(), is(repositoryBean.getModificationDate()));
+        assertThat(serviceBean.getCreationUser(), is(repositoryBean.getCreationUser()));
+        assertThat(serviceBean.getModificationUser(), is(repositoryBean.getModificationUser()));
     }
 
     private com.stratio.casemanagement.model.repository.CaseRequest generateCaseRequestRepository() {
         return podamFactory.manufacturePojo(com.stratio.casemanagement.model.repository.CaseRequest.class);
+    }
+
+    private CaseRequest generateCaseRequestService() {
+        return podamFactory.manufacturePojo(CaseRequest.class);
+    }
+
+    private void verifyRepositoryCalled(CaseRequest originalServiceBean) {
+        verify(mockRepository).insertCaseRequest(repoCaseRequestCaptor.capture());
+        com.stratio.casemanagement.model.repository.CaseRequest sentCaseRequestToRepo = repoCaseRequestCaptor.getValue();
+        compareServiceAndRepositoryBeans(sentCaseRequestToRepo, originalServiceBean);
     }
 }

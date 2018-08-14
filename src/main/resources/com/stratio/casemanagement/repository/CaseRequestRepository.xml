@@ -19,4 +19,11 @@
         WHERE
             id = #{id}
     </select>
+
+    <insert id="insertCaseRequest" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO
+            applications.case_request(entity, creation_date, creation_user, modification_date, modification_user)
+        VALUES
+            (#{entityId}, current_timestamp, #{creationUser}, current_timestamp, #{modificationUser})
+    </insert>
 </mapper>

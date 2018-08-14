@@ -10,6 +10,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
+
 import static com.stratio.casemanagement.controller.CaseRequestController.API_BASE_PATH;
 import static com.stratio.casemanagement.controller.CaseRequestController.API_VERSION;
 
@@ -29,11 +31,11 @@ public class CaseRequestController {
         this.mapper = mapper;
     }
 
-    @RequestMapping(path = "/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
     public ResponseEntity<?> getCaseRequestById(@PathVariable("id") Long id) {
 
-        log.info("Entering request {}{}/{}", API_VERSION, API_BASE_PATH, id);
+        log.info("Entering request (GET) {}{}/{}", API_VERSION, API_BASE_PATH, id);
         log.debug("Entering CaseRequestController.getCaseRequestById with parameters: {}", id);
 
         CaseRequest result = mapper.mapBToA(caseRequestService.getCaseRequestById(id));
@@ -45,5 +47,23 @@ public class CaseRequestController {
         } else {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @ResponseBody
+    public ResponseEntity<?> createCaseRequest(@RequestBody CaseRequest caseRequest) throws Exception {
+        log.info("Entering request (POST) {}{}", API_VERSION, API_BASE_PATH);
+        log.debug("Entering CaseRequestController.createCaseRequest with parameters: {}", caseRequest);
+
+        CaseRequest result = mapper.mapBToA(caseRequestService.insertCaseRequest(mapper.mapAToB(caseRequest)));
+
+        log.debug("Exiting CaseRequestController.createCaseRequest with result: {}" + result);
+
+        // TODO: Generate location
+        return ResponseEntity.created(new URI("http://example.com")).body(result);
+
+        // TODO: Perform validations!!
+        // TODO: Controller advice!
+        // TODO: Expose no dates!!
     }
 }

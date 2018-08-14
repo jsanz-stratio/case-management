@@ -23,8 +23,24 @@ public class CaseRequestServiceDefault implements CaseRequestService {
     @Override
     public CaseRequest getCaseRequestById(Long id) {
         log.debug("Entering CaseRequestServiceDefault.getCaseRequestById with parameters: {}", id);
+
         CaseRequest result = mapper.mapBToA(caseRequestRepository.getCaseRequestById(id));
+
         log.debug("Exiting CaseRequestServiceDefault.getCaseRequestById with result: {}" + result);
+
+        return result;
+    }
+
+    @Override
+    public CaseRequest insertCaseRequest(CaseRequest caseRequest) {
+        log.debug("Entering CaseRequestServiceDefault.insertCaseRequest with parameters: {}", caseRequest);
+
+        com.stratio.casemanagement.model.repository.CaseRequest repositoryCaseRequest = mapper.mapAToB(caseRequest);
+        caseRequestRepository.insertCaseRequest(repositoryCaseRequest);
+        CaseRequest result = mapper.mapBToA(repositoryCaseRequest);
+
+        log.debug("Exiting CaseRequestServiceDefault.insertCaseRequest with result: {}" + result);
+
         return result;
     }
 }

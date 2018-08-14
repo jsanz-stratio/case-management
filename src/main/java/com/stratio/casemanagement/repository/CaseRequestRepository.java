@@ -7,4 +7,5 @@ import org.apache.ibatis.annotations.Param;
 @Mapper
 public interface CaseRequestRepository {
     CaseRequest getCaseRequestById(@Param("id") Long id);
+    void insertCaseRequest(CaseRequest caseRequest);
 }

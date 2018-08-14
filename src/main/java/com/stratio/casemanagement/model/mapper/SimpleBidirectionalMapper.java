@@ -1,17 +1,17 @@
 package com.stratio.casemanagement.model.mapper;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 public interface SimpleBidirectionalMapper<A, B> {
     B mapAToB(A a);
+
     A mapBToA(B b);
 
-    default String instantToString(Instant instant) {
-        return instant == null ? null : instant.toString();
+    default String localDateTimeToString(LocalDateTime localDateTime) {
+        return localDateTime == null ? null : localDateTime.toString();
     }
 
-    default Instant stringToInstant(String string) {
-        // TODO!!!
-        return null;
+    default LocalDateTime stringToLocalDateTime(String string) {
+        return LocalDateTime.now();
     }
 }

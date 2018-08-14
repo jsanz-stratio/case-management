@@ -2,14 +2,14 @@ package com.stratio.casemanagement.model.repository;
 
 import lombok.Data;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Data
 public class CaseRequest {
     private Long id;
-    private Instant creationDate;
+    private LocalDateTime creationDate;
     private String creationUser;
-    private Instant modificationDate;
+    private LocalDateTime modificationDate;
     private String modificationUser;
     private String entityId;
 }

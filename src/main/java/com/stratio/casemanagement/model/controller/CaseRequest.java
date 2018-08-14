@@ -2,8 +2,6 @@ package com.stratio.casemanagement.model.controller;
 
 import lombok.Data;
 
-import java.time.Instant;
-
 @Data
 public class CaseRequest {
     private Long id;
