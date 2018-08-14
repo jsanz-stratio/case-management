@@ -3,7 +3,7 @@ package com.stratio.casemanagement.model.controller;
 import lombok.Data;
 
 @Data
-public class CaseRequest {
+public class CaseRequestResponse {
     private Long id;
     private String creationDate;
     private String creationUser;

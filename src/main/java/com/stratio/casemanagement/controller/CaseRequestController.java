@@ -1,8 +1,10 @@
 package com.stratio.casemanagement.controller;
 
 import com.stratio.casemanagement.config.SwaggerConfiguration;
-import com.stratio.casemanagement.model.controller.CaseRequest;
-import com.stratio.casemanagement.model.mapper.CaseRequestControllerServiceMapper;
+import com.stratio.casemanagement.model.controller.CaseRequestRequest;
+import com.stratio.casemanagement.model.controller.CaseRequestResponse;
+import com.stratio.casemanagement.model.mapper.CaseRequestRequestControllerToCaseRequestServiceMapper;
+import com.stratio.casemanagement.model.mapper.CaseRequestServiceToCaseRequestResponseControllerMapper;
 import com.stratio.casemanagement.service.CaseRequestService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,12 +25,31 @@ public class CaseRequestController {
     public static final String API_BASE_PATH = "/case-requests";
 
     private final CaseRequestService caseRequestService;
-    private final CaseRequestControllerServiceMapper mapper;
+    private final CaseRequestRequestControllerToCaseRequestServiceMapper inMapper;
+    private final CaseRequestServiceToCaseRequestResponseControllerMapper outMapper;
 
     @Autowired
-    public CaseRequestController(CaseRequestService caseRequestService, CaseRequestControllerServiceMapper mapper) {
+    public CaseRequestController(CaseRequestService caseRequestService, CaseRequestRequestControllerToCaseRequestServiceMapper inMapper,
+                                 CaseRequestServiceToCaseRequestResponseControllerMapper outMapper) {
         this.caseRequestService = caseRequestService;
-        this.mapper = mapper;
+        this.inMapper = inMapper;
+        this.outMapper = outMapper;
+    }
+
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @ResponseBody
+    public ResponseEntity<?> createCaseRequest(@RequestBody CaseRequestRequest caseRequest) throws Exception {
+        log.info("Entering request (POST) {}{}", API_VERSION, API_BASE_PATH);
+        log.debug("Entering CaseRequestController.createCaseRequest with parameters: {}", caseRequest);
+
+        CaseRequestResponse result = outMapper.mapAToB(caseRequestService.insertCaseRequest(inMapper.mapAToB(caseRequest)));
+
+        log.debug("Exiting CaseRequestController.createCaseRequest with result: {}" + result);
+
+        return ResponseEntity.created(new URI(generateLocationURIForCaseRequest(result))).body(result);
+
+        // TODO: Perform validations!!
+        // TODO: Controller advice!
     }
 
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -38,7 +59,7 @@ public class CaseRequestController {
         log.info("Entering request (GET) {}{}/{}", API_VERSION, API_BASE_PATH, id);
         log.debug("Entering CaseRequestController.getCaseRequestById with parameters: {}", id);
 
-        CaseRequest result = mapper.mapBToA(caseRequestService.getCaseRequestById(id));
+        CaseRequestResponse result = outMapper.mapAToB(caseRequestService.getCaseRequestById(id));
 
         log.debug("Exiting CaseRequestController.getCaseRequestById with result: {}" + result);
 
@@ -49,21 +70,7 @@ public class CaseRequestController {
         }
     }
 
-    @PostMapping(consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    @ResponseBody
-    public ResponseEntity<?> createCaseRequest(@RequestBody CaseRequest caseRequest) throws Exception {
-        log.info("Entering request (POST) {}{}", API_VERSION, API_BASE_PATH);
-        log.debug("Entering CaseRequestController.createCaseRequest with parameters: {}", caseRequest);
-
-        CaseRequest result = mapper.mapBToA(caseRequestService.insertCaseRequest(mapper.mapAToB(caseRequest)));
-
-        log.debug("Exiting CaseRequestController.createCaseRequest with result: {}" + result);
-
-        // TODO: Generate location
-        return ResponseEntity.created(new URI("http://example.com")).body(result);
-
-        // TODO: Perform validations!!
-        // TODO: Controller advice!
-        // TODO: Expose no dates!!
+    private String generateLocationURIForCaseRequest(CaseRequestResponse response) {
+        return SwaggerConfiguration.API_PREFIX + API_VERSION + API_BASE_PATH + "/" + response.getId();
     }
 }

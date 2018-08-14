@@ -7,6 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Service
 @Slf4j
 public class CaseRequestServiceDefault implements CaseRequestService {
@@ -35,6 +37,8 @@ public class CaseRequestServiceDefault implements CaseRequestService {
     public CaseRequest insertCaseRequest(CaseRequest caseRequest) {
         log.debug("Entering CaseRequestServiceDefault.insertCaseRequest with parameters: {}", caseRequest);
 
+        setDatesAtCreationTime(caseRequest);
+
         com.stratio.casemanagement.model.repository.CaseRequest repositoryCaseRequest = mapper.mapAToB(caseRequest);
         caseRequestRepository.insertCaseRequest(repositoryCaseRequest);
         CaseRequest result = mapper.mapBToA(repositoryCaseRequest);
@@ -42,5 +46,11 @@ public class CaseRequestServiceDefault implements CaseRequestService {
         log.debug("Exiting CaseRequestServiceDefault.insertCaseRequest with result: {}" + result);
 
         return result;
+    }
+
+    private void setDatesAtCreationTime(CaseRequest caseRequest) {
+        LocalDateTime now = LocalDateTime.now();
+        caseRequest.setCreationDate(now);
+        caseRequest.setModificationDate(now);
     }
 }
