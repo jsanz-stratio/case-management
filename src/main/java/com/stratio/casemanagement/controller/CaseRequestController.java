@@ -3,8 +3,8 @@ package com.stratio.casemanagement.controller;
 import com.stratio.casemanagement.config.SwaggerConfiguration;
 import com.stratio.casemanagement.model.controller.CaseRequestRequest;
 import com.stratio.casemanagement.model.controller.CaseRequestResponse;
-import com.stratio.casemanagement.model.mapper.CaseRequestRequestControllerToCaseRequestServiceMapper;
-import com.stratio.casemanagement.model.mapper.CaseRequestServiceToCaseRequestResponseControllerMapper;
+import com.stratio.casemanagement.model.mapper.CaseRequestControllerInboundMapper;
+import com.stratio.casemanagement.model.mapper.CaseRequestControllerOutboundMapper;
 import com.stratio.casemanagement.service.CaseRequestService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,12 +26,12 @@ public class CaseRequestController {
     public static final String API_BASE_PATH = "/case-requests";
 
     private final CaseRequestService caseRequestService;
-    private final CaseRequestRequestControllerToCaseRequestServiceMapper inMapper;
-    private final CaseRequestServiceToCaseRequestResponseControllerMapper outMapper;
+    private final CaseRequestControllerInboundMapper inMapper;
+    private final CaseRequestControllerOutboundMapper outMapper;
 
     @Autowired
-    public CaseRequestController(CaseRequestService caseRequestService, CaseRequestRequestControllerToCaseRequestServiceMapper inMapper,
-                                 CaseRequestServiceToCaseRequestResponseControllerMapper outMapper) {
+    public CaseRequestController(CaseRequestService caseRequestService, CaseRequestControllerInboundMapper inMapper,
+                                 CaseRequestControllerOutboundMapper outMapper) {
         this.caseRequestService = caseRequestService;
         this.inMapper = inMapper;
         this.outMapper = outMapper;
@@ -43,7 +43,7 @@ public class CaseRequestController {
         log.info("Entering request (POST) {}{}", API_VERSION, API_BASE_PATH);
         log.debug("Entering CaseRequestController.createCaseRequest with parameters: {}", caseRequest);
 
-        CaseRequestResponse result = outMapper.mapAToB(caseRequestService.insertCaseRequest(inMapper.mapAToB(caseRequest)));
+        CaseRequestResponse result = outMapper.mapAToB(caseRequestService.insertCaseRequest(inMapper.mapForCreate(caseRequest)));
 
         log.debug("Exiting CaseRequestController.createCaseRequest with result: {}" + result);
 
@@ -89,7 +89,7 @@ public class CaseRequestController {
         log.info("Entering request (PUT) {}{}/{}", API_VERSION, API_BASE_PATH, id);
         log.debug("Entering CaseRequestController.updateCaseRequestById with parameters: {}; {}", id, caseRequest);
 
-        int affectedRows = caseRequestService.updateCaseRequestById(id, inMapper.mapAToB(caseRequest));
+        int affectedRows = caseRequestService.updateCaseRequestById(id, inMapper.mapForUpdate(caseRequest));
 
         log.debug("CaseRequestController.updateCaseRequestById affected rows number: {}", affectedRows);
 

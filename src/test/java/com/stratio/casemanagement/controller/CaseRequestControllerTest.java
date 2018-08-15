@@ -3,10 +3,10 @@ package com.stratio.casemanagement.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stratio.casemanagement.config.SwaggerConfiguration;
 import com.stratio.casemanagement.model.controller.CaseRequestRequest;
-import com.stratio.casemanagement.model.mapper.CaseRequestRequestControllerToCaseRequestServiceMapper;
-import com.stratio.casemanagement.model.mapper.CaseRequestRequestControllerToCaseRequestServiceMapperImpl;
-import com.stratio.casemanagement.model.mapper.CaseRequestServiceToCaseRequestResponseControllerMapper;
-import com.stratio.casemanagement.model.mapper.CaseRequestServiceToCaseRequestResponseControllerMapperImpl;
+import com.stratio.casemanagement.model.mapper.CaseRequestControllerInboundMapper;
+import com.stratio.casemanagement.model.mapper.CaseRequestControllerInboundMapperImpl;
+import com.stratio.casemanagement.model.mapper.CaseRequestControllerOutboundMapper;
+import com.stratio.casemanagement.model.mapper.CaseRequestControllerOutboundMapperImpl;
 import com.stratio.casemanagement.model.service.CaseRequest;
 import com.stratio.casemanagement.service.CaseRequestService;
 import org.junit.Before;
@@ -45,9 +45,9 @@ public class CaseRequestControllerTest {
     @Mock
     private CaseRequestService mockService;
     @Spy
-    private CaseRequestRequestControllerToCaseRequestServiceMapper spyInMapper = new CaseRequestRequestControllerToCaseRequestServiceMapperImpl();
+    private CaseRequestControllerInboundMapper spyInMapper = new CaseRequestControllerInboundMapperImpl();
     @Spy
-    private CaseRequestServiceToCaseRequestResponseControllerMapper spyOutMapper = new CaseRequestServiceToCaseRequestResponseControllerMapperImpl();
+    private CaseRequestControllerOutboundMapper spyOutMapper = new CaseRequestControllerOutboundMapperImpl();
     @InjectMocks
     private CaseRequestController classUnderTest;
 
@@ -89,7 +89,7 @@ public class CaseRequestControllerTest {
 
         verify(mockService).insertCaseRequest(caseRequestCaptor.capture());
         CaseRequest caseRequestForServiceCall = caseRequestCaptor.getValue();
-        verifyServiceCall(testCaseRequest, caseRequestForServiceCall);
+        verifyServiceCallForCreation(testCaseRequest, caseRequestForServiceCall);
     }
 
     @Test
@@ -197,7 +197,7 @@ public class CaseRequestControllerTest {
 
         verify(mockService).updateCaseRequestById(eq(testId), caseRequestCaptor.capture());
         CaseRequest caseRequestForServiceCall = caseRequestCaptor.getValue();
-        verifyServiceCall(testCaseRequestRequest, caseRequestForServiceCall);
+        verifyServiceCallForUpdate(testCaseRequestRequest, caseRequestForServiceCall);
     }
 
     @Test
@@ -217,7 +217,7 @@ public class CaseRequestControllerTest {
 
         verify(mockService).updateCaseRequestById(eq(testId), caseRequestCaptor.capture());
         CaseRequest caseRequestForServiceCall = caseRequestCaptor.getValue();
-        verifyServiceCall(testCaseRequestRequest, caseRequestForServiceCall);
+        verifyServiceCallForUpdate(testCaseRequestRequest, caseRequestForServiceCall);
     }
 
     @Test
@@ -237,19 +237,29 @@ public class CaseRequestControllerTest {
 
         verify(mockService).updateCaseRequestById(eq(testId), caseRequestCaptor.capture());
         CaseRequest caseRequestForServiceCall = caseRequestCaptor.getValue();
-        verifyServiceCall(testCaseRequestRequest, caseRequestForServiceCall);
+        verifyServiceCallForUpdate(testCaseRequestRequest, caseRequestForServiceCall);
     }
 
     private String generateExpectedLocationUri(CaseRequest resultCaseRequestFromService) {
         return API_PREFIX + API_VERSION + API_BASE_PATH + "/" + resultCaseRequestFromService.getId();
     }
 
-    private void verifyServiceCall(CaseRequestRequest testCaseRequest, CaseRequest caseRequestForServiceCall) {
+    private void verifyServiceCallCommonParameters(CaseRequestRequest testCaseRequest, CaseRequest caseRequestForServiceCall) {
         assertThat(caseRequestForServiceCall.getId(), is(nullValue()));
         assertThat(caseRequestForServiceCall.getCreationDate(), is(nullValue()));
         assertThat(caseRequestForServiceCall.getModificationDate(), is(nullValue()));
         assertThat(caseRequestForServiceCall.getEntityId(), is(testCaseRequest.getEntityId()));
-        assertThat(caseRequestForServiceCall.getCreationUser(), is(testCaseRequest.getCreationUser()));
-        assertThat(caseRequestForServiceCall.getModificationUser(), is(testCaseRequest.getModificationUser()));
+    }
+
+    private void verifyServiceCallForCreation(CaseRequestRequest testCaseRequest, CaseRequest caseRequestForServiceCall) {
+        verifyServiceCallCommonParameters(testCaseRequest, caseRequestForServiceCall);
+        assertThat(caseRequestForServiceCall.getCreationUser(), is(testCaseRequest.getOperationUser()));
+        assertThat(caseRequestForServiceCall.getModificationUser(), is(testCaseRequest.getOperationUser()));
+    }
+
+    private void verifyServiceCallForUpdate(CaseRequestRequest testCaseRequest, CaseRequest caseRequestForServiceCall) {
+        verifyServiceCallCommonParameters(testCaseRequest, caseRequestForServiceCall);
+        assertThat(caseRequestForServiceCall.getCreationUser(), is(nullValue()));
+        assertThat(caseRequestForServiceCall.getModificationUser(), is(testCaseRequest.getOperationUser()));
     }
 }

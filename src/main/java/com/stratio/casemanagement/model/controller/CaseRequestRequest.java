@@ -4,7 +4,6 @@ import lombok.Data;
 
 @Data
 public class CaseRequestRequest {
-    private String creationUser;
-    private String modificationUser;
+    private String operationUser;
     private String entityId;
 }
