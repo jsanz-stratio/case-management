@@ -6,6 +6,7 @@ import com.stratio.casemanagement.repository.CaseRequestRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
@@ -45,6 +46,7 @@ public class CaseRequestServiceDefault implements CaseRequestService {
     }
 
     @Override
+    @Transactional
     public CaseRequest insertCaseRequest(CaseRequest caseRequest) {
         log.debug("Entering CaseRequestServiceDefault.insertCaseRequest with parameters: {}", caseRequest);
 
@@ -60,6 +62,7 @@ public class CaseRequestServiceDefault implements CaseRequestService {
     }
 
     @Override
+    @Transactional
     public int updateCaseRequestById(Long id, CaseRequest caseRequest) {
         log.debug("Entering CaseRequestServiceDefault.updateCaseRequestById with parameters: {}", caseRequest);
 
