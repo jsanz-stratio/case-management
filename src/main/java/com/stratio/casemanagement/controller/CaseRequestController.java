@@ -52,6 +52,19 @@ public class CaseRequestController {
         // TODO: Perform validations on: entityId
     }
 
+    @DeleteMapping(path = "/{id}")
+    @ResponseBody
+    public ResponseEntity<?> deleteCaseRequestById(@PathVariable("id") Long id) {
+        log.info("Entering request (DELETE) {}{}/{}", API_VERSION, API_BASE_PATH, id);
+        log.debug("Entering CaseRequestController.deleteCaseRequestById with parameters: {}", id);
+
+        int affectedRows = caseRequestService.deleteCaseRequestById(id);
+
+        log.debug("CaseRequestController.deleteCaseRequestById affected rows number: {}", affectedRows);
+
+        return getResponseWithAffectedRows(affectedRows);
+    }
+
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
     public ResponseEntity<?> getCaseRequestById(@PathVariable("id") Long id) {
@@ -70,27 +83,31 @@ public class CaseRequestController {
         }
     }
 
-    @DeleteMapping(path = "/{id}")
+    @PutMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
-    public ResponseEntity<?> deleteCaseRequestById(@PathVariable("id") Long id) {
-        log.info("Entering request (DELETE) {}{}/{}", API_VERSION, API_BASE_PATH, id);
-        log.debug("Entering CaseRequestController.deleteCaseRequestById with parameters: {}", id);
+    public ResponseEntity<?> updateCaseRequestById(@PathVariable("id") Long id, @RequestBody CaseRequestRequest caseRequest) {
+        log.info("Entering request (PUT) {}{}/{}", API_VERSION, API_BASE_PATH, id);
+        log.debug("Entering CaseRequestController.updateCaseRequestById with parameters: {}; {}", id, caseRequest);
 
-        int affectedRows = caseRequestService.deleteCaseRequestById(id);
+        int affectedRows = caseRequestService.updateCaseRequestById(id, inMapper.mapAToB(caseRequest));
 
-        log.debug("CaseRequestController.deleteCaseRequestById affected rows number: {}" + affectedRows);
+        log.debug("CaseRequestController.updateCaseRequestById affected rows number: {}", affectedRows);
 
+        return getResponseWithAffectedRows(affectedRows);
+    }
+
+    private String generateLocationURIForCaseRequest(CaseRequestResponse response) {
+        return SwaggerConfiguration.API_PREFIX + API_VERSION + API_BASE_PATH + "/" + response.getId();
+    }
+
+    private ResponseEntity<?> getResponseWithAffectedRows(int affectedRows) {
         if (affectedRows == 1) {
             return ResponseEntity.ok().build();
         } else if (affectedRows == 0) {
             return ResponseEntity.notFound().build();
         } else {
-            log.error("CaseRequestController.deleteCaseRequestById must delete zero or one rows. Ir deleted {} instead", affectedRows);
+            log.error("Method must affect zero or one rows. Ir affected {} instead", affectedRows);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-    }
-
-    private String generateLocationURIForCaseRequest(CaseRequestResponse response) {
-        return SwaggerConfiguration.API_PREFIX + API_VERSION + API_BASE_PATH + "/" + response.getId();
     }
 }

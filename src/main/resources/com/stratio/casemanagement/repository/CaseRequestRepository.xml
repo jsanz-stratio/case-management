@@ -31,4 +31,13 @@
         DELETE FROM applications.case_request
         WHERE id = #{id}
     </delete>
+
+    <update id="updateCaseRequestById">
+        UPDATE applications.case_request
+        SET
+            entity = #{caseRequest.entityId},
+            modification_date = #{caseRequest.modificationDate},
+            modification_user = #{caseRequest.modificationUser}
+        WHERE id = #{id}
+    </update>
 </mapper>

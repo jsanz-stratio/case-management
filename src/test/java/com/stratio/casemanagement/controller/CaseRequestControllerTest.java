@@ -31,9 +31,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -95,6 +93,51 @@ public class CaseRequestControllerTest {
     }
 
     @Test
+    public void whenDeleteCaseRequestByIdGivenMoreThanOneRowAffectedThenReturn500() throws Exception {
+        // Given
+        final Long testId = 42L;
+        when(mockService.deleteCaseRequestById(any(Long.class))).thenReturn(2);
+
+        // When, then
+        mockMvc.perform(
+                delete(URL_BASE + URL_CASE_REQUESTS_RESOURCE + URL_CASE_REQUEST_BY_ID_SUBRESOURCE, testId)
+        )
+                .andExpect(status().isInternalServerError());
+
+        verify(mockService).deleteCaseRequestById(eq(testId));
+    }
+
+    @Test
+    public void whenDeleteCaseRequestByIdGivenOneRowAffectedThenReturn200() throws Exception {
+        // Given
+        final Long testId = 42L;
+        when(mockService.deleteCaseRequestById(any(Long.class))).thenReturn(1);
+
+        // When, then
+        mockMvc.perform(
+                delete(URL_BASE + URL_CASE_REQUESTS_RESOURCE + URL_CASE_REQUEST_BY_ID_SUBRESOURCE, testId)
+        )
+                .andExpect(status().isOk());
+
+        verify(mockService).deleteCaseRequestById(eq(testId));
+    }
+
+    @Test
+    public void whenDeleteCaseRequestByIdGivenZeroRowsAffectedThenReturn404() throws Exception {
+        // Given
+        final Long testId = 42L;
+        when(mockService.deleteCaseRequestById(any(Long.class))).thenReturn(0);
+
+        // When, then
+        mockMvc.perform(
+                delete(URL_BASE + URL_CASE_REQUESTS_RESOURCE + URL_CASE_REQUEST_BY_ID_SUBRESOURCE, testId)
+        )
+                .andExpect(status().isNotFound());
+
+        verify(mockService).deleteCaseRequestById(eq(testId));
+    }
+
+    @Test
     public void whenGetCaseRequestByIdGivenNullResultThenReturn404() throws Exception {
         // Given
         final Long testId = 42L;
@@ -138,50 +181,63 @@ public class CaseRequestControllerTest {
     }
 
     @Test
-    public void whenDeleteCaseRequestByIdGivenZeroRowsAffectedThenReturn404() throws Exception {
+    public void whenUpdateCaseRequestByIdGivenMoreThanOneRowAffectedThenReturn500() throws Exception {
         // Given
         final Long testId = 42L;
-        when(mockService.deleteCaseRequestById(any(Long.class))).thenReturn(0);
+        final CaseRequestRequest testCaseRequestRequest = podamFactory.manufacturePojo(CaseRequestRequest.class);
+        when(mockService.updateCaseRequestById(any(Long.class), any(CaseRequest.class))).thenReturn(2);
 
         // When, then
         mockMvc.perform(
-                delete(URL_BASE + URL_CASE_REQUESTS_RESOURCE + URL_CASE_REQUEST_BY_ID_SUBRESOURCE, testId)
-        )
-                .andExpect(status().isNotFound());
-
-        verify(mockService).deleteCaseRequestById(eq(testId));
-    }
-
-    @Test
-    public void whenDeleteCaseRequestByIdGivenOneRowAffectedThenReturn200() throws Exception {
-        // Given
-        final Long testId = 42L;
-        when(mockService.deleteCaseRequestById(any(Long.class))).thenReturn(1);
-
-
-        // When, then
-        mockMvc.perform(
-                delete(URL_BASE + URL_CASE_REQUESTS_RESOURCE + URL_CASE_REQUEST_BY_ID_SUBRESOURCE, testId)
-        )
-                .andExpect(status().isOk());
-
-        verify(mockService).deleteCaseRequestById(eq(testId));
-    }
-
-    @Test
-    public void whenDeleteCaseRequestByIdGivenMoreThanOneRowAffectedThenReturn500() throws Exception {
-        // Given
-        final Long testId = 42L;
-        when(mockService.deleteCaseRequestById(any(Long.class))).thenReturn(2);
-
-
-        // When, then
-        mockMvc.perform(
-                delete(URL_BASE + URL_CASE_REQUESTS_RESOURCE + URL_CASE_REQUEST_BY_ID_SUBRESOURCE, testId)
+                put(URL_BASE + URL_CASE_REQUESTS_RESOURCE + URL_CASE_REQUEST_BY_ID_SUBRESOURCE, testId)
+                        .content(jsonMapper.writeValueAsString(testCaseRequestRequest))
+                        .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
         )
                 .andExpect(status().isInternalServerError());
 
-        verify(mockService).deleteCaseRequestById(eq(testId));
+        verify(mockService).updateCaseRequestById(eq(testId), caseRequestCaptor.capture());
+        CaseRequest caseRequestForServiceCall = caseRequestCaptor.getValue();
+        verifyServiceCall(testCaseRequestRequest, caseRequestForServiceCall);
+    }
+
+    @Test
+    public void whenUpdateCaseRequestByIdGivenOneRowAffectedThenReturn200() throws Exception {
+        // Given
+        final Long testId = 42L;
+        final CaseRequestRequest testCaseRequestRequest = podamFactory.manufacturePojo(CaseRequestRequest.class);
+        when(mockService.updateCaseRequestById(any(Long.class), any(CaseRequest.class))).thenReturn(1);
+
+        // When, then
+        mockMvc.perform(
+                put(URL_BASE + URL_CASE_REQUESTS_RESOURCE + URL_CASE_REQUEST_BY_ID_SUBRESOURCE, testId)
+                        .content(jsonMapper.writeValueAsString(testCaseRequestRequest))
+                        .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
+        )
+                .andExpect(status().isOk());
+
+        verify(mockService).updateCaseRequestById(eq(testId), caseRequestCaptor.capture());
+        CaseRequest caseRequestForServiceCall = caseRequestCaptor.getValue();
+        verifyServiceCall(testCaseRequestRequest, caseRequestForServiceCall);
+    }
+
+    @Test
+    public void whenUpdateCaseRequestByIdGivenZeroRowsAffectedThenReturn404() throws Exception {
+        // Given
+        final Long testId = 42L;
+        final CaseRequestRequest testCaseRequestRequest = podamFactory.manufacturePojo(CaseRequestRequest.class);
+        when(mockService.updateCaseRequestById(any(Long.class), any(CaseRequest.class))).thenReturn(0);
+
+        // When, then
+        mockMvc.perform(
+                put(URL_BASE + URL_CASE_REQUESTS_RESOURCE + URL_CASE_REQUEST_BY_ID_SUBRESOURCE, testId)
+                        .content(jsonMapper.writeValueAsString(testCaseRequestRequest))
+                        .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
+        )
+                .andExpect(status().isNotFound());
+
+        verify(mockService).updateCaseRequestById(eq(testId), caseRequestCaptor.capture());
+        CaseRequest caseRequestForServiceCall = caseRequestCaptor.getValue();
+        verifyServiceCall(testCaseRequestRequest, caseRequestForServiceCall);
     }
 
     private String generateExpectedLocationUri(CaseRequest resultCaseRequestFromService) {

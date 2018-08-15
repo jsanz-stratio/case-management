@@ -9,4 +9,5 @@ public interface CaseRequestRepository {
     CaseRequest getCaseRequestById(@Param("id") Long id);
     void insertCaseRequest(CaseRequest caseRequest);
     int deleteCaseRequestById(@Param("id") Long id);
+    int updateCaseRequestById(@Param("id") Long id, @Param("caseRequest") CaseRequest caseRequest);
 }

@@ -23,6 +23,17 @@ public class CaseRequestServiceDefault implements CaseRequestService {
     }
 
     @Override
+    public int deleteCaseRequestById(Long id) {
+        log.debug("Entering CaseRequestServiceDefault.deleteCaseRequestById with parameters: {}", id);
+
+        int affectedRows = caseRequestRepository.deleteCaseRequestById(id);
+
+        log.debug("Exiting CaseRequestServiceDefault.deleteCaseRequestById with result: {}", affectedRows);
+
+        return affectedRows;
+    }
+
+    @Override
     public CaseRequest getCaseRequestById(Long id) {
         log.debug("Entering CaseRequestServiceDefault.getCaseRequestById with parameters: {}", id);
 
@@ -49,12 +60,14 @@ public class CaseRequestServiceDefault implements CaseRequestService {
     }
 
     @Override
-    public int deleteCaseRequestById(Long id) {
-        log.debug("Entering CaseRequestServiceDefault.deleteCaseRequestById with parameters: {}", id);
+    public int updateCaseRequestById(Long id, CaseRequest caseRequest) {
+        log.debug("Entering CaseRequestServiceDefault.updateCaseRequestById with parameters: {}", caseRequest);
 
-        int affectedRows = caseRequestRepository.deleteCaseRequestById(id);
+        setDatesAtModificationTime(caseRequest);
 
-        log.debug("Exiting CaseRequestServiceDefault.deleteCaseRequestById with result: {}", affectedRows);
+        int affectedRows = caseRequestRepository.updateCaseRequestById(id, mapper.mapAToB(caseRequest));
+
+        log.debug("Exiting CaseRequestServiceDefault.updateCaseRequestById with result: {}", affectedRows);
 
         return affectedRows;
     }
@@ -62,6 +75,11 @@ public class CaseRequestServiceDefault implements CaseRequestService {
     private void setDatesAtCreationTime(CaseRequest caseRequest) {
         LocalDateTime now = LocalDateTime.now();
         caseRequest.setCreationDate(now);
+        caseRequest.setModificationDate(now);
+    }
+
+    private void setDatesAtModificationTime(CaseRequest caseRequest) {
+        LocalDateTime now = LocalDateTime.now();
         caseRequest.setModificationDate(now);
     }
 }

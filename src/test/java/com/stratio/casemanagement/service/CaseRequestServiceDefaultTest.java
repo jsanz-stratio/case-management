@@ -82,7 +82,7 @@ public class CaseRequestServiceDefaultTest {
 
         // Then
         assertThat(resultCaseRequest, is(notNullValue()));
-        compareServiceAndRepositoryBeans(resultCaseRequestFromRepo, resultCaseRequest);
+        verifyServiceAndRepositoryBeansEqual(resultCaseRequestFromRepo, resultCaseRequest);
 
         verify(mockRepository).getCaseRequestById(eq(testId));
     }
@@ -98,22 +98,28 @@ public class CaseRequestServiceDefaultTest {
         // Then
         verify(mockRepository).insertCaseRequest(repoCaseRequestCaptor.capture());
         com.stratio.casemanagement.model.repository.CaseRequest sentCaseRequestToRepo = repoCaseRequestCaptor.getValue();
-        assertThat(sentCaseRequestToRepo.getCreationDate(), is(notNullValue()));
-        assertThat(sentCaseRequestToRepo.getModificationDate(), is(notNullValue()));
-        assertThat(sentCaseRequestToRepo.getId(), is(testServiceCaseRequest.getId()));
-        assertThat(sentCaseRequestToRepo.getEntityId(), is(testServiceCaseRequest.getEntityId()));
-        assertThat(sentCaseRequestToRepo.getCreationUser(), is(testServiceCaseRequest.getCreationUser()));
-        assertThat(sentCaseRequestToRepo.getModificationUser(), is(testServiceCaseRequest.getModificationUser()));
+        verifySentCaseRequestAndDatesForCreate(testServiceCaseRequest, sentCaseRequestToRepo);
 
     }
 
-    private void compareServiceAndRepositoryBeans(com.stratio.casemanagement.model.repository.CaseRequest repositoryBean, CaseRequest serviceBean) {
-        assertThat(serviceBean.getId(), is(repositoryBean.getId()));
-        assertThat(serviceBean.getEntityId(), is(repositoryBean.getEntityId()));
-        assertThat(serviceBean.getCreationDate(), is(repositoryBean.getCreationDate()));
-        assertThat(serviceBean.getModificationDate(), is(repositoryBean.getModificationDate()));
-        assertThat(serviceBean.getCreationUser(), is(repositoryBean.getCreationUser()));
-        assertThat(serviceBean.getModificationUser(), is(repositoryBean.getModificationUser()));
+    @Test
+    public void whenUpdateCaseRequestByIdGivenValidInputThenCheckRepositoryCalledAndAffectedRowsReturned() {
+        // Given
+        final Long testId = 77L;
+        final CaseRequest testServiceCaseRequest = generateCaseRequestServiceWithNullDates();
+        final int returnedAffectedRowsFromRepository = 66;
+        when(mockRepository.updateCaseRequestById(any(Long.class), any(com.stratio.casemanagement.model.repository.CaseRequest.class)))
+                .thenReturn(returnedAffectedRowsFromRepository);
+
+        // When
+        int result = classUnderTest.updateCaseRequestById(testId, testServiceCaseRequest);
+
+        // Then
+        assertThat(result, is(returnedAffectedRowsFromRepository));
+
+        verify(mockRepository).updateCaseRequestById(eq(testId), repoCaseRequestCaptor.capture());
+        com.stratio.casemanagement.model.repository.CaseRequest sentCaseRequestToRepo = repoCaseRequestCaptor.getValue();
+        verifySentCaseRequestAndDatesForUpdate(testServiceCaseRequest, sentCaseRequestToRepo);
     }
 
     private CaseRequest generateCaseRequestServiceWithNullDates() {
@@ -121,5 +127,34 @@ public class CaseRequestServiceDefaultTest {
         caseRequest.setCreationDate(null);
         caseRequest.setModificationDate(null);
         return caseRequest;
+    }
+
+    private void verifySentCaseRequestAndDatesForCreate(CaseRequest testServiceCaseRequest,
+                                                        com.stratio.casemanagement.model.repository.CaseRequest sentCaseRequestToRepo) {
+        assertThat(sentCaseRequestToRepo.getCreationDate(), is(notNullValue()));
+        assertThat(sentCaseRequestToRepo.getModificationDate(), is(notNullValue()));
+        assertThat(sentCaseRequestToRepo.getId(), is(testServiceCaseRequest.getId()));
+        assertThat(sentCaseRequestToRepo.getEntityId(), is(testServiceCaseRequest.getEntityId()));
+        assertThat(sentCaseRequestToRepo.getCreationUser(), is(testServiceCaseRequest.getCreationUser()));
+        assertThat(sentCaseRequestToRepo.getModificationUser(), is(testServiceCaseRequest.getModificationUser()));
+    }
+
+    private void verifySentCaseRequestAndDatesForUpdate(CaseRequest testServiceCaseRequest,
+                                                        com.stratio.casemanagement.model.repository.CaseRequest sentCaseRequestToRepo) {
+        assertThat(sentCaseRequestToRepo.getCreationDate(), is(nullValue()));
+        assertThat(sentCaseRequestToRepo.getModificationDate(), is(notNullValue()));
+        assertThat(sentCaseRequestToRepo.getId(), is(testServiceCaseRequest.getId()));
+        assertThat(sentCaseRequestToRepo.getEntityId(), is(testServiceCaseRequest.getEntityId()));
+        assertThat(sentCaseRequestToRepo.getCreationUser(), is(testServiceCaseRequest.getCreationUser()));
+        assertThat(sentCaseRequestToRepo.getModificationUser(), is(testServiceCaseRequest.getModificationUser()));
+    }
+
+    private void verifyServiceAndRepositoryBeansEqual(com.stratio.casemanagement.model.repository.CaseRequest repositoryBean, CaseRequest serviceBean) {
+        assertThat(serviceBean.getId(), is(repositoryBean.getId()));
+        assertThat(serviceBean.getEntityId(), is(repositoryBean.getEntityId()));
+        assertThat(serviceBean.getCreationDate(), is(repositoryBean.getCreationDate()));
+        assertThat(serviceBean.getModificationDate(), is(repositoryBean.getModificationDate()));
+        assertThat(serviceBean.getCreationUser(), is(repositoryBean.getCreationUser()));
+        assertThat(serviceBean.getModificationUser(), is(repositoryBean.getModificationUser()));
     }
 }
