@@ -27,7 +27,7 @@
             (#{entityId}, #{creationDate}, #{creationUser}, #{modificationDate}, #{modificationUser})
     </insert>
 
-    <delete id="deleteCaseRequest">
+    <delete id="deleteCaseRequestById">
         DELETE FROM applications.case_request
         WHERE id = #{id}
     </delete>

@@ -52,7 +52,7 @@ public class CaseRequestServiceDefault implements CaseRequestService {
     public int deleteCaseRequestById(Long id) {
         log.debug("Entering CaseRequestServiceDefault.deleteCaseRequestById with parameters: {}", id);
 
-        int affectedRows = caseRequestRepository.deleteCaseRequest(id);
+        int affectedRows = caseRequestRepository.deleteCaseRequestById(id);
 
         log.debug("Exiting CaseRequestServiceDefault.deleteCaseRequestById with result: {}", affectedRows);
 

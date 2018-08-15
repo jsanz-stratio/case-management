@@ -42,7 +42,7 @@ public class CaseRequestServiceDefaultTest {
         final Long testId = 44L;
         final int returnedAffectedRowsFromRepository = 232;
 
-        when(mockRepository.deleteCaseRequest(any(Long.class))).thenReturn(returnedAffectedRowsFromRepository);
+        when(mockRepository.deleteCaseRequestById(any(Long.class))).thenReturn(returnedAffectedRowsFromRepository);
 
         // When
         int result = classUnderTest.deleteCaseRequestById(testId);
@@ -50,7 +50,7 @@ public class CaseRequestServiceDefaultTest {
         // Then
         assertThat(result, is(returnedAffectedRowsFromRepository));
 
-        verify(mockRepository).deleteCaseRequest(eq(testId));
+        verify(mockRepository).deleteCaseRequestById(eq(testId));
     }
 
     @Test
