@@ -1,7 +1,11 @@
 package com.stratio.casemanagement.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stratio.casemanagement.model.mapper.CaseRequestServiceRepositoryMapper;
+import com.stratio.casemanagement.model.repository.CaseRawData;
 import com.stratio.casemanagement.model.service.CaseRequest;
+import com.stratio.casemanagement.repository.CaseRawDataRepository;
 import com.stratio.casemanagement.repository.CaseRequestRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,11 +19,16 @@ import java.time.LocalDateTime;
 public class CaseRequestServiceDefault implements CaseRequestService {
 
     private final CaseRequestRepository caseRequestRepository;
+    private final CaseRawDataRepository caseRawDataRepository;
+    private final ObjectMapper jacksonObjectMapper;
     private final CaseRequestServiceRepositoryMapper mapper;
 
     @Autowired
-    public CaseRequestServiceDefault(CaseRequestRepository caseRequestRepository, CaseRequestServiceRepositoryMapper mapper) {
+    public CaseRequestServiceDefault(CaseRequestRepository caseRequestRepository, CaseRawDataRepository caseRawDataRepository,
+                                     ObjectMapper jacksonObjectMapper, CaseRequestServiceRepositoryMapper mapper) {
         this.caseRequestRepository = caseRequestRepository;
+        this.caseRawDataRepository = caseRawDataRepository;
+        this.jacksonObjectMapper = jacksonObjectMapper;
         this.mapper = mapper;
     }
 
@@ -47,18 +56,22 @@ public class CaseRequestServiceDefault implements CaseRequestService {
 
     @Override
     @Transactional
-    public CaseRequest insertCaseRequest(CaseRequest caseRequest) {
-        log.debug("Entering CaseRequestServiceDefault.insertCaseRequest with parameters: {}", caseRequest);
+    public CaseRequest insertCaseRequest(CaseRequest inputCaseRequest) {
+        log.debug("Entering CaseRequestServiceDefault.insertCaseRequest with parameters: {}", inputCaseRequest);
 
-        setDatesAtCreationTime(caseRequest);
+        setDatesAtCreationTime(inputCaseRequest);
 
-        com.stratio.casemanagement.model.repository.CaseRequest repositoryCaseRequest = mapper.mapAToB(caseRequest);
+        com.stratio.casemanagement.model.repository.CaseRequest repositoryCaseRequest = mapper.mapAToB(inputCaseRequest);
         caseRequestRepository.insertCaseRequest(repositoryCaseRequest);
-        CaseRequest result = mapper.mapBToA(repositoryCaseRequest);
+        CaseRequest outputCaseRequest = mapper.mapBToA(repositoryCaseRequest);
 
-        log.debug("Exiting CaseRequestServiceDefault.insertCaseRequest with result: {}", result);
+        CaseRawData caseRawData = buildCaseRawData(inputCaseRequest, outputCaseRequest);
+        caseRawDataRepository.insertCaseRawData(caseRawData);
+        outputCaseRequest.setCaseRawData(inputCaseRequest.getCaseRawData());
 
-        return result;
+        log.debug("Exiting CaseRequestServiceDefault.insertCaseRequest with result: {}", outputCaseRequest);
+
+        return outputCaseRequest;
     }
 
     @Override
@@ -73,6 +86,13 @@ public class CaseRequestServiceDefault implements CaseRequestService {
         log.debug("Exiting CaseRequestServiceDefault.updateCaseRequestById with result: {}", affectedRows);
 
         return affectedRows;
+    }
+
+    private CaseRawData buildCaseRawData(CaseRequest inputCaseRequest, CaseRequest outputCaseRequest) {
+        CaseRawData caseRawData = new CaseRawData();
+        caseRawData.setCaseId(outputCaseRequest.getId());
+        caseRawData.setRaw(inputCaseRequest.getCaseRawData());
+        return caseRawData;
     }
 
     private void setDatesAtCreationTime(CaseRequest caseRequest) {

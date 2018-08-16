@@ -9,6 +9,7 @@ import com.stratio.casemanagement.model.mapper.CaseRequestControllerOutboundMapp
 import com.stratio.casemanagement.model.mapper.CaseRequestControllerOutboundMapperImpl;
 import com.stratio.casemanagement.model.service.CaseRequest;
 import com.stratio.casemanagement.service.CaseRequestService;
+import lombok.Data;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,6 +22,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import uk.co.jemos.podam.api.PodamFactory;
 import uk.co.jemos.podam.api.PodamFactoryImpl;
 
+import java.util.List;
+import java.util.Map;
+
 import static com.stratio.casemanagement.config.SwaggerConfiguration.API_PREFIX;
 import static com.stratio.casemanagement.controller.CaseRequestController.API_BASE_PATH;
 import static com.stratio.casemanagement.controller.CaseRequestController.API_VERSION;
@@ -32,6 +36,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -64,12 +69,14 @@ public class CaseRequestControllerTest {
     }
 
     @Test
-    public void whenCreateCaseRequestGivenValidInputThenReturn201CreatedAndMappedEntity() throws Exception {
+    public void createCaseRequest_ValidInput_Return201CreatedAndMappedEntity() throws Exception {
         // Given
         final CaseRequestInput testCaseRequest = podamFactory.manufacturePojo(CaseRequestInput.class);
 
-        final com.stratio.casemanagement.model.service.CaseRequest resultCaseRequestFromService = podamFactory.manufacturePojo(CaseRequest.class);
-        when(mockService.insertCaseRequest(any(com.stratio.casemanagement.model.service.CaseRequest.class))).thenReturn(resultCaseRequestFromService);
+        final com.stratio.casemanagement.model.service.CaseRequest returnedCaseRequestFromService = podamFactory.manufacturePojo(CaseRequest.class);
+        // Add valid json object to raw data
+        returnedCaseRequestFromService.setCaseRawData(jsonMapper.writeValueAsString(podamFactory.manufacturePojo(TestObject.class)));
+        when(mockService.insertCaseRequest(any(com.stratio.casemanagement.model.service.CaseRequest.class))).thenReturn(returnedCaseRequestFromService);
 
         // When, then
         mockMvc.perform(
@@ -79,13 +86,15 @@ public class CaseRequestControllerTest {
                         .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
         )
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("id").value(resultCaseRequestFromService.getId()))
-                .andExpect(jsonPath("creationDate").value(resultCaseRequestFromService.getCreationDate().toString()))
-                .andExpect(jsonPath("creationUser").value(resultCaseRequestFromService.getCreationUser()))
-                .andExpect(jsonPath("modificationDate").value(resultCaseRequestFromService.getModificationDate().toString()))
-                .andExpect(jsonPath("modificationUser").value(resultCaseRequestFromService.getModificationUser()))
-                .andExpect(jsonPath("entityId").value(resultCaseRequestFromService.getEntityId()))
-                .andExpect(MockMvcResultMatchers.header().string("location", generateExpectedLocationUri(resultCaseRequestFromService)));
+                .andDo(print())
+                .andExpect(jsonPath("id").value(returnedCaseRequestFromService.getId()))
+                .andExpect(jsonPath("creationDate").value(returnedCaseRequestFromService.getCreationDate().toString()))
+                .andExpect(jsonPath("creationUser").value(returnedCaseRequestFromService.getCreationUser()))
+                .andExpect(jsonPath("modificationDate").value(returnedCaseRequestFromService.getModificationDate().toString()))
+                .andExpect(jsonPath("modificationUser").value(returnedCaseRequestFromService.getModificationUser()))
+                .andExpect(jsonPath("entityId").value(returnedCaseRequestFromService.getEntityId()))
+                .andExpect(jsonPath("caseRawData").value(returnedCaseRequestFromService.getCaseRawData()))
+                .andExpect(MockMvcResultMatchers.header().string("location", generateExpectedLocationUri(returnedCaseRequestFromService)));
 
         verify(mockService).insertCaseRequest(caseRequestCaptor.capture());
         CaseRequest caseRequestForServiceCall = caseRequestCaptor.getValue();
@@ -93,7 +102,7 @@ public class CaseRequestControllerTest {
     }
 
     @Test
-    public void whenDeleteCaseRequestByIdGivenMoreThanOneRowAffectedThenReturn500() throws Exception {
+    public void deleteCaseRequestById_MoreThanOneRowAffected_Return500() throws Exception {
         // Given
         final Long testId = 42L;
         when(mockService.deleteCaseRequestById(any(Long.class))).thenReturn(2);
@@ -108,7 +117,7 @@ public class CaseRequestControllerTest {
     }
 
     @Test
-    public void whenDeleteCaseRequestByIdGivenOneRowAffectedThenReturn200() throws Exception {
+    public void deleteCaseRequestById_OneRowAffected_Return200() throws Exception {
         // Given
         final Long testId = 42L;
         when(mockService.deleteCaseRequestById(any(Long.class))).thenReturn(1);
@@ -123,7 +132,7 @@ public class CaseRequestControllerTest {
     }
 
     @Test
-    public void whenDeleteCaseRequestByIdGivenZeroRowsAffectedThenReturn404() throws Exception {
+    public void deleteCaseRequestById_ZeroRowsAffected_Return404() throws Exception {
         // Given
         final Long testId = 42L;
         when(mockService.deleteCaseRequestById(any(Long.class))).thenReturn(0);
@@ -138,7 +147,7 @@ public class CaseRequestControllerTest {
     }
 
     @Test
-    public void whenGetCaseRequestByIdGivenNullResultThenReturn404() throws Exception {
+    public void getCaseRequestById_NullResult_Return404() throws Exception {
         // Given
         final Long testId = 42L;
 
@@ -156,7 +165,7 @@ public class CaseRequestControllerTest {
     }
 
     @Test
-    public void whenGetCaseRequestByIdGivenValidResultThenReturn200AndMappedEntity() throws Exception {
+    public void getCaseRequestById_ValidResult_Return200AndMappedEntity() throws Exception {
         // Given
         final Long testId = 42L;
 
@@ -181,7 +190,7 @@ public class CaseRequestControllerTest {
     }
 
     @Test
-    public void whenUpdateCaseRequestByIdGivenMoreThanOneRowAffectedThenReturn500() throws Exception {
+    public void updateCaseRequestById_MoreThanOneRowAffected_Return500() throws Exception {
         // Given
         final Long testId = 42L;
         final CaseRequestInput testCaseRequestInput = podamFactory.manufacturePojo(CaseRequestInput.class);
@@ -201,7 +210,7 @@ public class CaseRequestControllerTest {
     }
 
     @Test
-    public void whenUpdateCaseRequestByIdGivenOneRowAffectedThenReturn200() throws Exception {
+    public void updateCaseRequestById_OneRowAffected_Return200() throws Exception {
         // Given
         final Long testId = 42L;
         final CaseRequestInput testCaseRequestInput = podamFactory.manufacturePojo(CaseRequestInput.class);
@@ -221,7 +230,7 @@ public class CaseRequestControllerTest {
     }
 
     @Test
-    public void whenUpdateCaseRequestByIdGivenZeroRowsAffectedThenReturn404() throws Exception {
+    public void updateCaseRequestById_ZeroRowsAffected_Return404() throws Exception {
         // Given
         final Long testId = 42L;
         final CaseRequestInput testCaseRequestInput = podamFactory.manufacturePojo(CaseRequestInput.class);
@@ -262,4 +271,13 @@ public class CaseRequestControllerTest {
         assertThat(caseRequestForServiceCall.getCreationUser(), is(nullValue()));
         assertThat(caseRequestForServiceCall.getModificationUser(), is(testCaseRequest.getOperationUser()));
     }
+
+    @Data
+    private static class TestObject {
+        private String a;
+        private int b;
+        private List<String> list;
+        private Map<String, String> map;
+    }
+
 }

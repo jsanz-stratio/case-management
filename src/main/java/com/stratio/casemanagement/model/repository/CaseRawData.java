@@ -4,4 +4,6 @@ import lombok.Data;
 
 @Data
 public class CaseRawData {
+    private Long caseId;
+    private String raw;
 }

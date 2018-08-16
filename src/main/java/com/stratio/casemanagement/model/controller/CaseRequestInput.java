@@ -6,4 +6,6 @@ import lombok.Data;
 public class CaseRequestInput {
     private String operationUser;
     private String entityId;
+
+    private String caseRawData;
 }

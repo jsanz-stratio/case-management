@@ -1,0 +1,22 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.stratio.casemanagement.repository.CaseRawDataRepository">
+
+    <resultMap id="caseRawDataResult" type="com.stratio.casemanagement.model.repository.CaseRawData">
+        <result property="caseId" column="case_id" />
+        <result property="raw" column="raw" />
+    </resultMap>
+
+    <insert id="insertCaseRawData">
+        INSERT INTO
+            applications.case_raw_data(case_id, raw)
+        VALUES
+            (#{caseId}, #{raw}::json)
+    </insert>
+
+    <select id="getCaseRawDataById">
+        SELECT case_id, raw
+        FROM applications.case_raw_data
+        WHERE case_id = #{caseId}
+    </select>
+</mapper>

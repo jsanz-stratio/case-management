@@ -10,4 +10,6 @@ public class CaseRequestOutput {
     private String modificationDate;
     private String modificationUser;
     private String entityId;
+
+    private String caseRawData;
 }

@@ -12,4 +12,6 @@ public class CaseRequest {
     private LocalDateTime modificationDate;
     private String modificationUser;
     private String entityId;
+
+    private String caseRawData;
 }
