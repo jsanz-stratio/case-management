@@ -1,19 +1,19 @@
--- object: applicationapi | type: SCHEMA --
-DROP SCHEMA IF EXISTS applicationapi CASCADE;
+-- object: applications | type: SCHEMA --
+DROP SCHEMA IF EXISTS applications CASCADE;
 
 GRANT ALL PRIVILEGES ON DATABASE postgres TO docker;
 
-CREATE SCHEMA applicationapi;
+CREATE SCHEMA applications;
 -- ddl-end --
-ALTER SCHEMA applicationapi OWNER TO postgres;
--- ddl-end --
-
-SET search_path TO pg_catalog,public,applicationapi;
+ALTER SCHEMA applications OWNER TO postgres;
 -- ddl-end --
 
--- object: applicationapi.entity | type: TABLE --
-DROP TABLE IF EXISTS applicationapi.entity CASCADE;
-CREATE TABLE applicationapi.entity(
+SET search_path TO pg_catalog,public,applications;
+-- ddl-end --
+
+-- object: applications.entity | type: TABLE --
+DROP TABLE IF EXISTS applications.entity CASCADE;
+CREATE TABLE applications.entity(
 	id varchar(50) NOT NULL,
 	description varchar(50) NOT NULL,
 	CONSTRAINT entity_pk PRIMARY KEY (id),
@@ -21,12 +21,12 @@ CREATE TABLE applicationapi.entity(
 
 );
 -- ddl-end --
-ALTER TABLE applicationapi.entity OWNER TO postgres;
+ALTER TABLE applications.entity OWNER TO postgres;
 -- ddl-end --
 
--- object: applicationapi.status | type: TABLE --
-DROP TABLE IF EXISTS applicationapi.status CASCADE;
-CREATE TABLE applicationapi.status(
+-- object: applications.status | type: TABLE --
+DROP TABLE IF EXISTS applications.status CASCADE;
+CREATE TABLE applications.status(
 	id char(4) NOT NULL,
 	description varchar(50),
 	CONSTRAINT status_pk PRIMARY KEY (id),
@@ -34,12 +34,12 @@ CREATE TABLE applicationapi.status(
 
 );
 -- ddl-end --
-ALTER TABLE applicationapi.status OWNER TO postgres;
+ALTER TABLE applications.status OWNER TO postgres;
 -- ddl-end --
 
--- object: applicationapi.case_application | type: TABLE --
-DROP TABLE IF EXISTS applicationapi.case_application CASCADE;
-CREATE TABLE applicationapi.case_application(
+-- object: applications.case_application | type: TABLE --
+DROP TABLE IF EXISTS applications.case_application CASCADE;
+CREATE TABLE applications.case_application(
 	case_id bigint NOT NULL,
 	appseq integer NOT NULL,
 	process_id varchar(50) NOT NULL,
@@ -53,24 +53,24 @@ CREATE TABLE applicationapi.case_application(
 
 );
 -- ddl-end --
-ALTER TABLE applicationapi.case_application OWNER TO postgres;
+ALTER TABLE applications.case_application OWNER TO postgres;
 -- ddl-end --
 
--- object: applicationapi.case_raw_data | type: TABLE --
-DROP TABLE IF EXISTS applicationapi.case_raw_data CASCADE;
-CREATE TABLE applicationapi.case_raw_data(
+-- object: applications.case_raw_data | type: TABLE --
+DROP TABLE IF EXISTS applications.case_raw_data CASCADE;
+CREATE TABLE applications.case_raw_data(
 	case_id bigint NOT NULL,
 	raw json NOT NULL,
 	CONSTRAINT case_rawdata_pk PRIMARY KEY (case_id)
 
 );
 -- ddl-end --
-ALTER TABLE applicationapi.case_raw_data OWNER TO postgres;
+ALTER TABLE applications.case_raw_data OWNER TO postgres;
 -- ddl-end --
 
--- object: applicationapi.case_raw_attachment | type: TABLE --
-DROP TABLE IF EXISTS applicationapi.case_raw_attachment CASCADE;
-CREATE TABLE applicationapi.case_raw_attachment(
+-- object: applications.case_raw_attachment | type: TABLE --
+DROP TABLE IF EXISTS applications.case_raw_attachment CASCADE;
+CREATE TABLE applications.case_raw_attachment(
 	case_id bigint NOT NULL,
 	seqid smallint NOT NULL,
 	data text NOT NULL,
@@ -79,19 +79,19 @@ CREATE TABLE applicationapi.case_raw_attachment(
 
 );
 -- ddl-end --
-ALTER TABLE applicationapi.case_raw_attachment OWNER TO postgres;
+ALTER TABLE applications.case_raw_attachment OWNER TO postgres;
 -- ddl-end --
 
--- object: applicationapi.case_participant | type: TABLE --
-DROP TABLE IF EXISTS applicationapi.case_participant CASCADE;
-CREATE TABLE applicationapi.case_participant(
+-- object: applications.case_participant | type: TABLE --
+DROP TABLE IF EXISTS applications.case_participant CASCADE;
+CREATE TABLE applications.case_participant(
 	case_id bigint NOT NULL,
 	participants_data jsonb NOT NULL,
 	CONSTRAINT case_participant_pk PRIMARY KEY (case_id)
 
 );
 -- ddl-end --
-ALTER TABLE applicationapi.case_participant OWNER TO postgres;
+ALTER TABLE applications.case_participant OWNER TO postgres;
 -- ddl-end --
 
 -- object: public.case_id | type: SEQUENCE --
@@ -122,35 +122,35 @@ CREATE SEQUENCE public.seq_case_id
 ALTER SEQUENCE public.seq_case_id OWNER TO postgres;
 -- ddl-end --
 
--- object: applicationapi.activity | type: TABLE --
-DROP TABLE IF EXISTS applicationapi.activity CASCADE;
-CREATE TABLE applicationapi.activity(
+-- object: applications.activity | type: TABLE --
+DROP TABLE IF EXISTS applications.activity CASCADE;
+CREATE TABLE applications.activity(
 	id varchar(50) NOT NULL,
 	description varchar(50),
 	CONSTRAINT activity_pk PRIMARY KEY (id)
 
 );
 -- ddl-end --
-ALTER TABLE applicationapi.activity OWNER TO postgres;
+ALTER TABLE applications.activity OWNER TO postgres;
 -- ddl-end --
 
--- object: applicationapi.activity_status_restriction | type: TABLE --
-DROP TABLE IF EXISTS applicationapi.activity_status_restriction CASCADE;
-CREATE TABLE applicationapi.activity_status_restriction(
+-- object: applications.activity_status_restriction | type: TABLE --
+DROP TABLE IF EXISTS applications.activity_status_restriction CASCADE;
+CREATE TABLE applications.activity_status_restriction(
 	status_id char(4) NOT NULL,
 	activity_id char(4) NOT NULL,
 	CONSTRAINT activity_status_restriction_pk PRIMARY KEY (status_id,activity_id)
 
 );
 -- ddl-end --
-COMMENT ON TABLE applicationapi.activity_status_restriction IS 'shows in what status an activity can be executed';
+COMMENT ON TABLE applications.activity_status_restriction IS 'shows in what status an activity can be executed';
 -- ddl-end --
-ALTER TABLE applicationapi.activity_status_restriction OWNER TO postgres;
+ALTER TABLE applications.activity_status_restriction OWNER TO postgres;
 -- ddl-end --
 
 -- object: pkindex | type: INDEX --
-DROP INDEX IF EXISTS applicationapi.pkindex CASCADE;
-CREATE INDEX pkindex ON applicationapi.entity
+DROP INDEX IF EXISTS applications.pkindex CASCADE;
+CREATE INDEX pkindex ON applications.entity
 	USING btree
 	(
 	  id
@@ -158,8 +158,8 @@ CREATE INDEX pkindex ON applicationapi.entity
 -- ddl-end --
 
 -- object: pkappcase | type: INDEX --
-DROP INDEX IF EXISTS applicationapi.pkappcase CASCADE;
-CREATE INDEX pkappcase ON applicationapi.case_application
+DROP INDEX IF EXISTS applications.pkappcase CASCADE;
+CREATE INDEX pkappcase ON applications.case_application
 	USING btree
 	(
 	  case_id
@@ -167,8 +167,8 @@ CREATE INDEX pkappcase ON applicationapi.case_application
 -- ddl-end --
 
 -- object: participants_data_jsonb | type: INDEX --
-DROP INDEX IF EXISTS applicationapi.participants_data_jsonb CASCADE;
-CREATE INDEX participants_data_jsonb ON applicationapi.case_participant
+DROP INDEX IF EXISTS applications.participants_data_jsonb CASCADE;
+CREATE INDEX participants_data_jsonb ON applications.case_participant
 	USING gin
 	(
 	  participants_data
@@ -176,8 +176,8 @@ CREATE INDEX participants_data_jsonb ON applicationapi.case_participant
 -- ddl-end --
 
 -- object: pkraw | type: INDEX --
-DROP INDEX IF EXISTS applicationapi.pkraw CASCADE;
-CREATE INDEX pkraw ON applicationapi.case_raw_data
+DROP INDEX IF EXISTS applications.pkraw CASCADE;
+CREATE INDEX pkraw ON applications.case_raw_data
 	USING btree
 	(
 	  case_id
@@ -185,8 +185,8 @@ CREATE INDEX pkraw ON applicationapi.case_raw_data
 -- ddl-end --
 
 -- object: pkrawattachment | type: INDEX --
-DROP INDEX IF EXISTS applicationapi.pkrawattachment CASCADE;
-CREATE INDEX pkrawattachment ON applicationapi.case_raw_attachment
+DROP INDEX IF EXISTS applications.pkrawattachment CASCADE;
+CREATE INDEX pkrawattachment ON applications.case_raw_attachment
 	USING btree
 	(
 	  case_id,
@@ -195,8 +195,8 @@ CREATE INDEX pkrawattachment ON applicationapi.case_raw_attachment
 -- ddl-end --
 
 -- object: idx_main_act_st_restriction | type: INDEX --
-DROP INDEX IF EXISTS applicationapi.idx_main_act_st_restriction CASCADE;
-CREATE INDEX idx_main_act_st_restriction ON applicationapi.activity_status_restriction
+DROP INDEX IF EXISTS applications.idx_main_act_st_restriction CASCADE;
+CREATE INDEX idx_main_act_st_restriction ON applications.activity_status_restriction
 	USING btree
 	(
 	  status_id,
@@ -205,8 +205,8 @@ CREATE INDEX idx_main_act_st_restriction ON applicationapi.activity_status_restr
 -- ddl-end --
 
 -- object: idx_main_status | type: INDEX --
-DROP INDEX IF EXISTS applicationapi.idx_main_status CASCADE;
-CREATE INDEX idx_main_status ON applicationapi.status
+DROP INDEX IF EXISTS applications.idx_main_status CASCADE;
+CREATE INDEX idx_main_status ON applications.status
 	USING btree
 	(
 	  id
@@ -214,17 +214,17 @@ CREATE INDEX idx_main_status ON applicationapi.status
 -- ddl-end --
 
 -- object: idx_main_act | type: INDEX --
-DROP INDEX IF EXISTS applicationapi.idx_main_act CASCADE;
-CREATE INDEX idx_main_act ON applicationapi.activity
+DROP INDEX IF EXISTS applications.idx_main_act CASCADE;
+CREATE INDEX idx_main_act ON applications.activity
 	USING btree
 	(
 	  id
 	);
 -- ddl-end --
 
--- object: applicationapi.case_request | type: TABLE --
-DROP TABLE IF EXISTS applicationapi.case_request CASCADE;
-CREATE TABLE applicationapi.case_request(
+-- object: applications.case_request | type: TABLE --
+DROP TABLE IF EXISTS applications.case_request CASCADE;
+CREATE TABLE applications.case_request(
 	id bigserial NOT NULL,
 	entity varchar(50) NOT NULL,
 	creation_date timestamp NOT NULL DEFAULT current_timestamp,
@@ -235,12 +235,12 @@ CREATE TABLE applicationapi.case_request(
 
 );
 -- ddl-end --
-ALTER TABLE applicationapi.case_request OWNER TO postgres;
+ALTER TABLE applications.case_request OWNER TO postgres;
 -- ddl-end --
 
 -- object: pkindexcase | type: INDEX --
-DROP INDEX IF EXISTS applicationapi.pkindexcase CASCADE;
-CREATE INDEX pkindexcase ON applicationapi.case_request
+DROP INDEX IF EXISTS applications.pkindexcase CASCADE;
+CREATE INDEX pkindexcase ON applications.case_request
 	USING btree
 	(
 	  id
@@ -248,57 +248,57 @@ CREATE INDEX pkindexcase ON applicationapi.case_request
 -- ddl-end --
 
 -- object: has_entity | type: CONSTRAINT --
--- ALTER TABLE applicationapi.case_request DROP CONSTRAINT IF EXISTS has_entity CASCADE;
-ALTER TABLE applicationapi.case_request ADD CONSTRAINT has_entity FOREIGN KEY (entity)
-REFERENCES applicationapi.entity (id) MATCH FULL
+-- ALTER TABLE applications.case_request DROP CONSTRAINT IF EXISTS has_entity CASCADE;
+ALTER TABLE applications.case_request ADD CONSTRAINT has_entity FOREIGN KEY (entity)
+REFERENCES applications.entity (id) MATCH FULL
 ON DELETE NO ACTION ON UPDATE NO ACTION;
 -- ddl-end --
 
 -- object: rel_application_case_id | type: CONSTRAINT --
--- ALTER TABLE applicationapi.case_application DROP CONSTRAINT IF EXISTS rel_application_case_id CASCADE;
-ALTER TABLE applicationapi.case_application ADD CONSTRAINT rel_application_case_id FOREIGN KEY (case_id)
-REFERENCES applicationapi.case_request (id) MATCH FULL
+-- ALTER TABLE applications.case_application DROP CONSTRAINT IF EXISTS rel_application_case_id CASCADE;
+ALTER TABLE applications.case_application ADD CONSTRAINT rel_application_case_id FOREIGN KEY (case_id)
+REFERENCES applications.case_request (id) MATCH FULL
 ON DELETE NO ACTION ON UPDATE NO ACTION;
 -- ddl-end --
 
 -- object: rel_application_status | type: CONSTRAINT --
--- ALTER TABLE applicationapi.case_application DROP CONSTRAINT IF EXISTS rel_application_status CASCADE;
-ALTER TABLE applicationapi.case_application ADD CONSTRAINT rel_application_status FOREIGN KEY (status)
-REFERENCES applicationapi.status (id) MATCH FULL
+-- ALTER TABLE applications.case_application DROP CONSTRAINT IF EXISTS rel_application_status CASCADE;
+ALTER TABLE applications.case_application ADD CONSTRAINT rel_application_status FOREIGN KEY (status)
+REFERENCES applications.status (id) MATCH FULL
 ON DELETE NO ACTION ON UPDATE NO ACTION;
 -- ddl-end --
 
 -- object: rawdata_case | type: CONSTRAINT --
--- ALTER TABLE applicationapi.case_raw_data DROP CONSTRAINT IF EXISTS rawdata_case CASCADE;
-ALTER TABLE applicationapi.case_raw_data ADD CONSTRAINT rawdata_case FOREIGN KEY (case_id)
-REFERENCES applicationapi.case_request (id) MATCH FULL
+-- ALTER TABLE applications.case_raw_data DROP CONSTRAINT IF EXISTS rawdata_case CASCADE;
+ALTER TABLE applications.case_raw_data ADD CONSTRAINT rawdata_case FOREIGN KEY (case_id)
+REFERENCES applications.case_request (id) MATCH FULL
 ON DELETE NO ACTION ON UPDATE NO ACTION;
 -- ddl-end --
 
 -- object: rel_raw_attachment_case | type: CONSTRAINT --
--- ALTER TABLE applicationapi.case_raw_attachment DROP CONSTRAINT IF EXISTS rel_raw_attachment_case CASCADE;
-ALTER TABLE applicationapi.case_raw_attachment ADD CONSTRAINT rel_raw_attachment_case FOREIGN KEY (case_id)
-REFERENCES applicationapi.case_request (id) MATCH FULL
+-- ALTER TABLE applications.case_raw_attachment DROP CONSTRAINT IF EXISTS rel_raw_attachment_case CASCADE;
+ALTER TABLE applications.case_raw_attachment ADD CONSTRAINT rel_raw_attachment_case FOREIGN KEY (case_id)
+REFERENCES applications.case_request (id) MATCH FULL
 ON DELETE NO ACTION ON UPDATE NO ACTION;
 -- ddl-end --
 
 -- object: rel_participant_case_id | type: CONSTRAINT --
--- ALTER TABLE applicationapi.case_participant DROP CONSTRAINT IF EXISTS rel_participant_case_id CASCADE;
-ALTER TABLE applicationapi.case_participant ADD CONSTRAINT rel_participant_case_id FOREIGN KEY (case_id)
-REFERENCES applicationapi.case_request (id) MATCH FULL
+-- ALTER TABLE applications.case_participant DROP CONSTRAINT IF EXISTS rel_participant_case_id CASCADE;
+ALTER TABLE applications.case_participant ADD CONSTRAINT rel_participant_case_id FOREIGN KEY (case_id)
+REFERENCES applications.case_request (id) MATCH FULL
 ON DELETE NO ACTION ON UPDATE NO ACTION;
 -- ddl-end --
 
 -- object: restriction_status | type: CONSTRAINT --
--- ALTER TABLE applicationapi.activity_status_restriction DROP CONSTRAINT IF EXISTS restriction_status CASCADE;
-ALTER TABLE applicationapi.activity_status_restriction ADD CONSTRAINT restriction_status FOREIGN KEY (status_id)
-REFERENCES applicationapi.status (id) MATCH FULL
+-- ALTER TABLE applications.activity_status_restriction DROP CONSTRAINT IF EXISTS restriction_status CASCADE;
+ALTER TABLE applications.activity_status_restriction ADD CONSTRAINT restriction_status FOREIGN KEY (status_id)
+REFERENCES applications.status (id) MATCH FULL
 ON DELETE NO ACTION ON UPDATE NO ACTION;
 -- ddl-end --
 
 -- object: restriction_activity | type: CONSTRAINT --
--- ALTER TABLE applicationapi.activity_status_restriction DROP CONSTRAINT IF EXISTS restriction_activity CASCADE;
-ALTER TABLE applicationapi.activity_status_restriction ADD CONSTRAINT restriction_activity FOREIGN KEY (activity_id)
-REFERENCES applicationapi.activity (id) MATCH FULL
+-- ALTER TABLE applications.activity_status_restriction DROP CONSTRAINT IF EXISTS restriction_activity CASCADE;
+ALTER TABLE applications.activity_status_restriction ADD CONSTRAINT restriction_activity FOREIGN KEY (activity_id)
+REFERENCES applications.activity (id) MATCH FULL
 ON DELETE NO ACTION ON UPDATE NO ACTION;
 -- ddl-end --
