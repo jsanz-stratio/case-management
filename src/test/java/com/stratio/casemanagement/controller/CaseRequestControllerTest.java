@@ -2,7 +2,7 @@ package com.stratio.casemanagement.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stratio.casemanagement.config.SwaggerConfiguration;
-import com.stratio.casemanagement.model.controller.CaseRequestRequest;
+import com.stratio.casemanagement.model.controller.CaseRequestInput;
 import com.stratio.casemanagement.model.mapper.CaseRequestControllerInboundMapper;
 import com.stratio.casemanagement.model.mapper.CaseRequestControllerInboundMapperImpl;
 import com.stratio.casemanagement.model.mapper.CaseRequestControllerOutboundMapper;
@@ -66,7 +66,7 @@ public class CaseRequestControllerTest {
     @Test
     public void whenCreateCaseRequestGivenValidInputThenReturn201CreatedAndMappedEntity() throws Exception {
         // Given
-        final CaseRequestRequest testCaseRequest = podamFactory.manufacturePojo(CaseRequestRequest.class);
+        final CaseRequestInput testCaseRequest = podamFactory.manufacturePojo(CaseRequestInput.class);
 
         final com.stratio.casemanagement.model.service.CaseRequest resultCaseRequestFromService = podamFactory.manufacturePojo(CaseRequest.class);
         when(mockService.insertCaseRequest(any(com.stratio.casemanagement.model.service.CaseRequest.class))).thenReturn(resultCaseRequestFromService);
@@ -184,80 +184,80 @@ public class CaseRequestControllerTest {
     public void whenUpdateCaseRequestByIdGivenMoreThanOneRowAffectedThenReturn500() throws Exception {
         // Given
         final Long testId = 42L;
-        final CaseRequestRequest testCaseRequestRequest = podamFactory.manufacturePojo(CaseRequestRequest.class);
+        final CaseRequestInput testCaseRequestInput = podamFactory.manufacturePojo(CaseRequestInput.class);
         when(mockService.updateCaseRequestById(any(Long.class), any(CaseRequest.class))).thenReturn(2);
 
         // When, then
         mockMvc.perform(
                 put(URL_BASE + URL_CASE_REQUESTS_RESOURCE + URL_CASE_REQUEST_BY_ID_SUBRESOURCE, testId)
-                        .content(jsonMapper.writeValueAsString(testCaseRequestRequest))
+                        .content(jsonMapper.writeValueAsString(testCaseRequestInput))
                         .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
         )
                 .andExpect(status().isInternalServerError());
 
         verify(mockService).updateCaseRequestById(eq(testId), caseRequestCaptor.capture());
         CaseRequest caseRequestForServiceCall = caseRequestCaptor.getValue();
-        verifyServiceCallForUpdate(testCaseRequestRequest, caseRequestForServiceCall);
+        verifyServiceCallForUpdate(testCaseRequestInput, caseRequestForServiceCall);
     }
 
     @Test
     public void whenUpdateCaseRequestByIdGivenOneRowAffectedThenReturn200() throws Exception {
         // Given
         final Long testId = 42L;
-        final CaseRequestRequest testCaseRequestRequest = podamFactory.manufacturePojo(CaseRequestRequest.class);
+        final CaseRequestInput testCaseRequestInput = podamFactory.manufacturePojo(CaseRequestInput.class);
         when(mockService.updateCaseRequestById(any(Long.class), any(CaseRequest.class))).thenReturn(1);
 
         // When, then
         mockMvc.perform(
                 put(URL_BASE + URL_CASE_REQUESTS_RESOURCE + URL_CASE_REQUEST_BY_ID_SUBRESOURCE, testId)
-                        .content(jsonMapper.writeValueAsString(testCaseRequestRequest))
+                        .content(jsonMapper.writeValueAsString(testCaseRequestInput))
                         .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
         )
                 .andExpect(status().isOk());
 
         verify(mockService).updateCaseRequestById(eq(testId), caseRequestCaptor.capture());
         CaseRequest caseRequestForServiceCall = caseRequestCaptor.getValue();
-        verifyServiceCallForUpdate(testCaseRequestRequest, caseRequestForServiceCall);
+        verifyServiceCallForUpdate(testCaseRequestInput, caseRequestForServiceCall);
     }
 
     @Test
     public void whenUpdateCaseRequestByIdGivenZeroRowsAffectedThenReturn404() throws Exception {
         // Given
         final Long testId = 42L;
-        final CaseRequestRequest testCaseRequestRequest = podamFactory.manufacturePojo(CaseRequestRequest.class);
+        final CaseRequestInput testCaseRequestInput = podamFactory.manufacturePojo(CaseRequestInput.class);
         when(mockService.updateCaseRequestById(any(Long.class), any(CaseRequest.class))).thenReturn(0);
 
         // When, then
         mockMvc.perform(
                 put(URL_BASE + URL_CASE_REQUESTS_RESOURCE + URL_CASE_REQUEST_BY_ID_SUBRESOURCE, testId)
-                        .content(jsonMapper.writeValueAsString(testCaseRequestRequest))
+                        .content(jsonMapper.writeValueAsString(testCaseRequestInput))
                         .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
         )
                 .andExpect(status().isNotFound());
 
         verify(mockService).updateCaseRequestById(eq(testId), caseRequestCaptor.capture());
         CaseRequest caseRequestForServiceCall = caseRequestCaptor.getValue();
-        verifyServiceCallForUpdate(testCaseRequestRequest, caseRequestForServiceCall);
+        verifyServiceCallForUpdate(testCaseRequestInput, caseRequestForServiceCall);
     }
 
     private String generateExpectedLocationUri(CaseRequest resultCaseRequestFromService) {
         return API_PREFIX + API_VERSION + API_BASE_PATH + "/" + resultCaseRequestFromService.getId();
     }
 
-    private void verifyServiceCallCommonParameters(CaseRequestRequest testCaseRequest, CaseRequest caseRequestForServiceCall) {
+    private void verifyServiceCallCommonParameters(CaseRequestInput testCaseRequest, CaseRequest caseRequestForServiceCall) {
         assertThat(caseRequestForServiceCall.getId(), is(nullValue()));
         assertThat(caseRequestForServiceCall.getCreationDate(), is(nullValue()));
         assertThat(caseRequestForServiceCall.getModificationDate(), is(nullValue()));
         assertThat(caseRequestForServiceCall.getEntityId(), is(testCaseRequest.getEntityId()));
     }
 
-    private void verifyServiceCallForCreation(CaseRequestRequest testCaseRequest, CaseRequest caseRequestForServiceCall) {
+    private void verifyServiceCallForCreation(CaseRequestInput testCaseRequest, CaseRequest caseRequestForServiceCall) {
         verifyServiceCallCommonParameters(testCaseRequest, caseRequestForServiceCall);
         assertThat(caseRequestForServiceCall.getCreationUser(), is(testCaseRequest.getOperationUser()));
         assertThat(caseRequestForServiceCall.getModificationUser(), is(testCaseRequest.getOperationUser()));
     }
 
-    private void verifyServiceCallForUpdate(CaseRequestRequest testCaseRequest, CaseRequest caseRequestForServiceCall) {
+    private void verifyServiceCallForUpdate(CaseRequestInput testCaseRequest, CaseRequest caseRequestForServiceCall) {
         verifyServiceCallCommonParameters(testCaseRequest, caseRequestForServiceCall);
         assertThat(caseRequestForServiceCall.getCreationUser(), is(nullValue()));
         assertThat(caseRequestForServiceCall.getModificationUser(), is(testCaseRequest.getOperationUser()));

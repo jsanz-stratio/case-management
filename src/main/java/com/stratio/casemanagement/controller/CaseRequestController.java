@@ -1,8 +1,8 @@
 package com.stratio.casemanagement.controller;
 
 import com.stratio.casemanagement.config.SwaggerConfiguration;
-import com.stratio.casemanagement.model.controller.CaseRequestRequest;
-import com.stratio.casemanagement.model.controller.CaseRequestResponse;
+import com.stratio.casemanagement.model.controller.CaseRequestInput;
+import com.stratio.casemanagement.model.controller.CaseRequestOutput;
 import com.stratio.casemanagement.model.mapper.CaseRequestControllerInboundMapper;
 import com.stratio.casemanagement.model.mapper.CaseRequestControllerOutboundMapper;
 import com.stratio.casemanagement.service.CaseRequestService;
@@ -39,11 +39,11 @@ public class CaseRequestController {
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
-    public ResponseEntity<?> createCaseRequest(@RequestBody CaseRequestRequest caseRequest) throws Exception {
+    public ResponseEntity<?> createCaseRequest(@RequestBody CaseRequestInput caseRequest) throws Exception {
         log.info("Entering request (POST) {}{}", API_VERSION, API_BASE_PATH);
         log.debug("Entering CaseRequestController.createCaseRequest with parameters: {}", caseRequest);
 
-        CaseRequestResponse result = outMapper.mapAToB(caseRequestService.insertCaseRequest(inMapper.mapForCreate(caseRequest)));
+        CaseRequestOutput result = outMapper.mapAToB(caseRequestService.insertCaseRequest(inMapper.mapForCreate(caseRequest)));
 
         log.debug("Exiting CaseRequestController.createCaseRequest with result: {}" + result);
 
@@ -72,7 +72,7 @@ public class CaseRequestController {
         log.info("Entering request (GET) {}{}/{}", API_VERSION, API_BASE_PATH, id);
         log.debug("Entering CaseRequestController.getCaseRequestById with parameters: {}", id);
 
-        CaseRequestResponse result = outMapper.mapAToB(caseRequestService.getCaseRequestById(id));
+        CaseRequestOutput result = outMapper.mapAToB(caseRequestService.getCaseRequestById(id));
 
         log.debug("Exiting CaseRequestController.getCaseRequestById with result: {}" + result);
 
@@ -85,7 +85,7 @@ public class CaseRequestController {
 
     @PutMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
-    public ResponseEntity<?> updateCaseRequestById(@PathVariable("id") Long id, @RequestBody CaseRequestRequest caseRequest) {
+    public ResponseEntity<?> updateCaseRequestById(@PathVariable("id") Long id, @RequestBody CaseRequestInput caseRequest) {
         log.info("Entering request (PUT) {}{}/{}", API_VERSION, API_BASE_PATH, id);
         log.debug("Entering CaseRequestController.updateCaseRequestById with parameters: {}; {}", id, caseRequest);
 
@@ -96,7 +96,7 @@ public class CaseRequestController {
         return getResponseWithAffectedRows(affectedRows);
     }
 
-    private String generateLocationURIForCaseRequest(CaseRequestResponse response) {
+    private String generateLocationURIForCaseRequest(CaseRequestOutput response) {
         return SwaggerConfiguration.API_PREFIX + API_VERSION + API_BASE_PATH + "/" + response.getId();
     }
 

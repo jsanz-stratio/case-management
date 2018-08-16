@@ -1,6 +1,6 @@
 package com.stratio.casemanagement.model.mapper;
 
-import com.stratio.casemanagement.model.controller.CaseRequestRequest;
+import com.stratio.casemanagement.model.controller.CaseRequestInput;
 import com.stratio.casemanagement.model.service.CaseRequest;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -12,10 +12,10 @@ public interface CaseRequestControllerInboundMapper {
             @Mapping(source = "operationUser", target="creationUser"),
             @Mapping(source = "operationUser", target="modificationUser")
     })
-    CaseRequest mapForCreate(CaseRequestRequest request);
+    CaseRequest mapForCreate(CaseRequestInput request);
 
     @Mappings({
             @Mapping(source = "operationUser", target="modificationUser")
     })
-    CaseRequest mapForUpdate(CaseRequestRequest request);
+    CaseRequest mapForUpdate(CaseRequestInput request);
 }
