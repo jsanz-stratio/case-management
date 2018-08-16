@@ -14,7 +14,7 @@
             (#{caseId}, #{raw}::json)
     </insert>
 
-    <select id="getCaseRawDataById">
+    <select id="getCaseRawDataById" resultMap="caseRawDataResult">
         SELECT case_id, raw
         FROM applications.case_raw_data
         WHERE case_id = #{caseId}

@@ -36,7 +36,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -86,7 +85,6 @@ public class CaseRequestControllerTest {
                         .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
         )
                 .andExpect(status().isCreated())
-                .andDo(print())
                 .andExpect(jsonPath("id").value(returnedCaseRequestFromService.getId()))
                 .andExpect(jsonPath("creationDate").value(returnedCaseRequestFromService.getCreationDate().toString()))
                 .andExpect(jsonPath("creationUser").value(returnedCaseRequestFromService.getCreationUser()))
@@ -183,7 +181,8 @@ public class CaseRequestControllerTest {
                 .andExpect(jsonPath("creationUser").value(resultCaseRequestFromService.getCreationUser()))
                 .andExpect(jsonPath("modificationDate").value(resultCaseRequestFromService.getModificationDate().toString()))
                 .andExpect(jsonPath("modificationUser").value(resultCaseRequestFromService.getModificationUser()))
-                .andExpect(jsonPath("entityId").value(resultCaseRequestFromService.getEntityId()));
+                .andExpect(jsonPath("entityId").value(resultCaseRequestFromService.getEntityId()))
+                .andExpect(jsonPath("caseRawData").value(resultCaseRequestFromService.getCaseRawData()));
 
 
         verify(mockService).getCaseRequestById(eq(testId));

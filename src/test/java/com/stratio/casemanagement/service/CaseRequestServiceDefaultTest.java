@@ -67,7 +67,7 @@ public class CaseRequestServiceDefaultTest {
     }
 
     @Test
-    public void getCaseRequestById_RepositoryReturnsNull_ReturnNullItself() {
+    public void getCaseRequestById_RepositoriesReturnsNull_ReturnNull() {
         // Given
         final Long testId = 66L;
 
@@ -86,16 +86,20 @@ public class CaseRequestServiceDefaultTest {
     public void getCaseRequestById_RepositoryReturnsResult_ReturnMappedResult() {
         // Given
         final Long testId = 66L;
+
         final com.stratio.casemanagement.model.repository.CaseRequest resultCaseRequestFromRepo =
                 podamFactory.manufacturePojo(com.stratio.casemanagement.model.repository.CaseRequest.class);
         when(mockCaseRequestRepo.getCaseRequestById(any(Long.class))).thenReturn(resultCaseRequestFromRepo);
+
+        final CaseRawData resultRawDataFromRepo = podamFactory.manufacturePojo(CaseRawData.class);
+        when(mockRawDataRepo.getCaseRawDataById(any(Long.class))).thenReturn(resultRawDataFromRepo);
 
         // When
         CaseRequest resultCaseRequest = classUnderTest.getCaseRequestById(testId);
 
         // Then
         assertThat(resultCaseRequest, is(notNullValue()));
-        verifyServiceAndRepositoryBeansEqual(resultCaseRequestFromRepo, resultCaseRequest);
+        verifyExpectedResultFromRepositoryOutput(resultCaseRequestFromRepo, resultRawDataFromRepo, resultCaseRequest);
 
         verify(mockCaseRequestRepo).getCaseRequestById(eq(testId));
     }
@@ -187,13 +191,15 @@ public class CaseRequestServiceDefaultTest {
         assertThat(sentCaseRequestToRepo.getModificationUser(), is(testServiceCaseRequest.getModificationUser()));
     }
 
-    private void verifyServiceAndRepositoryBeansEqual(com.stratio.casemanagement.model.repository.CaseRequest repositoryBean, CaseRequest serviceBean) {
-        assertThat(serviceBean.getId(), is(repositoryBean.getId()));
-        assertThat(serviceBean.getEntityId(), is(repositoryBean.getEntityId()));
-        assertThat(serviceBean.getCreationDate(), is(repositoryBean.getCreationDate()));
-        assertThat(serviceBean.getModificationDate(), is(repositoryBean.getModificationDate()));
-        assertThat(serviceBean.getCreationUser(), is(repositoryBean.getCreationUser()));
-        assertThat(serviceBean.getModificationUser(), is(repositoryBean.getModificationUser()));
+    private void verifyExpectedResultFromRepositoryOutput(com.stratio.casemanagement.model.repository.CaseRequest requestFromRepo,
+                                                          CaseRawData rawDataFromRepo, CaseRequest serviceBean) {
+        assertThat(serviceBean.getId(), is(requestFromRepo.getId()));
+        assertThat(serviceBean.getEntityId(), is(requestFromRepo.getEntityId()));
+        assertThat(serviceBean.getCreationDate(), is(requestFromRepo.getCreationDate()));
+        assertThat(serviceBean.getModificationDate(), is(requestFromRepo.getModificationDate()));
+        assertThat(serviceBean.getCreationUser(), is(requestFromRepo.getCreationUser()));
+        assertThat(serviceBean.getModificationUser(), is(requestFromRepo.getModificationUser()));
+        assertThat(serviceBean.getCaseRawData(), is(rawDataFromRepo.getRaw()));
     }
 
     @Data

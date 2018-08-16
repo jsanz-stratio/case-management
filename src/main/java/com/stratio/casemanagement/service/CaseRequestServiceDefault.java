@@ -1,6 +1,5 @@
 package com.stratio.casemanagement.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stratio.casemanagement.model.mapper.CaseRequestServiceRepositoryMapper;
 import com.stratio.casemanagement.model.repository.CaseRawData;
@@ -48,6 +47,9 @@ public class CaseRequestServiceDefault implements CaseRequestService {
         log.debug("Entering CaseRequestServiceDefault.getCaseRequestById with parameters: {}", id);
 
         CaseRequest result = mapper.mapBToA(caseRequestRepository.getCaseRequestById(id));
+        if (result != null) {
+            insertCaseRawDataInResult(id, result);
+        }
 
         log.debug("Exiting CaseRequestServiceDefault.getCaseRequestById with result: {}", result);
 
@@ -93,6 +95,11 @@ public class CaseRequestServiceDefault implements CaseRequestService {
         caseRawData.setCaseId(outputCaseRequest.getId());
         caseRawData.setRaw(inputCaseRequest.getCaseRawData());
         return caseRawData;
+    }
+
+    private void insertCaseRawDataInResult(Long id, CaseRequest result) {
+        CaseRawData caseRawDataById = caseRawDataRepository.getCaseRawDataById(id);
+        result.setCaseRawData(caseRawDataById != null ? caseRawDataById.getRaw() : null);
     }
 
     private void setDatesAtCreationTime(CaseRequest caseRequest) {
