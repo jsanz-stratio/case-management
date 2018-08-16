@@ -45,7 +45,7 @@ public class CaseRequestController {
 
         CaseRequestOutput result = outMapper.mapAToB(caseRequestService.insertCaseRequest(inMapper.mapForCreate(caseRequest)));
 
-        log.debug("Exiting CaseRequestController.createCaseRequest with result: {}" + result);
+        log.debug("Exiting CaseRequestController.createCaseRequest with result: {}", result);
 
         return ResponseEntity.created(new URI(generateLocationURIForCaseRequest(result))).body(result);
 
@@ -64,7 +64,7 @@ public class CaseRequestController {
 
         return getResponseWithAffectedRows(affectedRows);
 
-        // TODO: No cascade delete on case_raw_data
+        // TODO: No cascade delete on case_raw_data, case_participant
     }
 
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -76,7 +76,7 @@ public class CaseRequestController {
 
         CaseRequestOutput result = outMapper.mapAToB(caseRequestService.getCaseRequestById(id));
 
-        log.debug("Exiting CaseRequestController.getCaseRequestById with result: {}" + result);
+        log.debug("Exiting CaseRequestController.getCaseRequestById with result: {}", result);
 
         if (result != null) {
             return ResponseEntity.ok(result);
@@ -97,7 +97,7 @@ public class CaseRequestController {
 
         return getResponseWithAffectedRows(affectedRows);
 
-        // TODO: No update on case_raw_data
+        // TODO: No update on case_raw_data, case_participant
     }
 
     private String generateLocationURIForCaseRequest(CaseRequestOutput response) {

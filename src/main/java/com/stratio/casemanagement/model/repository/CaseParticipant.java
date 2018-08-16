@@ -4,4 +4,6 @@ import lombok.Data;
 
 @Data
 public class CaseParticipant {
+    private Long caseId;
+    private String participantsData;
 }

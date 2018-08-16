@@ -1,9 +1,10 @@
 package com.stratio.casemanagement.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stratio.casemanagement.model.mapper.CaseRequestServiceRepositoryMapper;
+import com.stratio.casemanagement.model.repository.CaseParticipant;
 import com.stratio.casemanagement.model.repository.CaseRawData;
 import com.stratio.casemanagement.model.service.CaseRequest;
+import com.stratio.casemanagement.repository.CaseParticipantRepository;
 import com.stratio.casemanagement.repository.CaseRawDataRepository;
 import com.stratio.casemanagement.repository.CaseRequestRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -20,15 +21,15 @@ public class CaseRequestServiceDefault implements CaseRequestService {
 
     private final CaseRequestRepository caseRequestRepository;
     private final CaseRawDataRepository caseRawDataRepository;
-    private final ObjectMapper jacksonObjectMapper;
+    private final CaseParticipantRepository caseParticipantRepository;
     private final CaseRequestServiceRepositoryMapper mapper;
 
     @Autowired
     public CaseRequestServiceDefault(CaseRequestRepository caseRequestRepository, CaseRawDataRepository caseRawDataRepository,
-                                     ObjectMapper jacksonObjectMapper, CaseRequestServiceRepositoryMapper mapper) {
+                                     CaseParticipantRepository caseParticipantRepository, CaseRequestServiceRepositoryMapper mapper) {
         this.caseRequestRepository = caseRequestRepository;
         this.caseRawDataRepository = caseRawDataRepository;
-        this.jacksonObjectMapper = jacksonObjectMapper;
+        this.caseParticipantRepository = caseParticipantRepository;
         this.mapper = mapper;
     }
 
@@ -50,6 +51,7 @@ public class CaseRequestServiceDefault implements CaseRequestService {
         CaseRequest result = mapper.mapBToA(caseRequestRepository.getCaseRequestById(id));
         if (result != null) {
             insertCaseRawDataInResult(id, result);
+            insertParticipantsInResult(id, result);
         }
 
         log.debug("Exiting CaseRequestServiceDefault.getCaseRequestById with result: {}", result);
@@ -72,6 +74,12 @@ public class CaseRequestServiceDefault implements CaseRequestService {
             CaseRawData caseRawData = buildCaseRawData(inputCaseRequest, outputCaseRequest);
             caseRawDataRepository.insertCaseRawData(caseRawData);
             outputCaseRequest.setCaseRawData(inputCaseRequest.getCaseRawData());
+        }
+
+        if (StringUtils.hasText(inputCaseRequest.getCaseParticipant())) {
+            CaseParticipant caseParticipant = buildParticipant(inputCaseRequest, outputCaseRequest);
+            caseParticipantRepository.insertCaseParticipant(caseParticipant);
+            outputCaseRequest.setCaseParticipant(inputCaseRequest.getCaseParticipant());
         }
 
         log.debug("Exiting CaseRequestServiceDefault.insertCaseRequest with result: {}", outputCaseRequest);
@@ -100,9 +108,21 @@ public class CaseRequestServiceDefault implements CaseRequestService {
         return caseRawData;
     }
 
+    private CaseParticipant buildParticipant(CaseRequest inputCaseRequest, CaseRequest outputCaseRequest) {
+        CaseParticipant caseParticipant = new CaseParticipant();
+        caseParticipant.setCaseId(outputCaseRequest.getId());
+        caseParticipant.setParticipantsData(inputCaseRequest.getCaseParticipant());
+        return caseParticipant;
+    }
+
     private void insertCaseRawDataInResult(Long id, CaseRequest result) {
         CaseRawData caseRawDataById = caseRawDataRepository.getCaseRawDataById(id);
         result.setCaseRawData(caseRawDataById != null ? caseRawDataById.getRaw() : null);
+    }
+
+    private void insertParticipantsInResult(Long id, CaseRequest result) {
+        CaseParticipant caseParticipantById = caseParticipantRepository.getCaseParticipantById(id);
+        result.setCaseParticipant(caseParticipantById != null ? caseParticipantById.getParticipantsData() : null);
     }
 
     private void setDatesAtCreationTime(CaseRequest caseRequest) {

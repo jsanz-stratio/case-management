@@ -182,7 +182,8 @@ public class CaseRequestControllerTest {
                 .andExpect(jsonPath("modificationDate").value(resultCaseRequestFromService.getModificationDate().toString()))
                 .andExpect(jsonPath("modificationUser").value(resultCaseRequestFromService.getModificationUser()))
                 .andExpect(jsonPath("entityId").value(resultCaseRequestFromService.getEntityId()))
-                .andExpect(jsonPath("caseRawData").value(resultCaseRequestFromService.getCaseRawData()));
+                .andExpect(jsonPath("caseRawData").value(resultCaseRequestFromService.getCaseRawData()))
+                .andExpect(jsonPath("caseParticipant").value(resultCaseRequestFromService.getCaseParticipant()));
 
 
         verify(mockService).getCaseRequestById(eq(testId));

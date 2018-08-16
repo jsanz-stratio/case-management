@@ -8,4 +8,5 @@ public class CaseRequestInput {
     private String entityId;
 
     private String caseRawData;
+    private String caseParticipant;
 }

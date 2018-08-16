@@ -3,8 +3,10 @@ package com.stratio.casemanagement.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stratio.casemanagement.model.mapper.CaseRequestServiceRepositoryMapper;
 import com.stratio.casemanagement.model.mapper.CaseRequestServiceRepositoryMapperImpl;
+import com.stratio.casemanagement.model.repository.CaseParticipant;
 import com.stratio.casemanagement.model.repository.CaseRawData;
 import com.stratio.casemanagement.model.service.CaseRequest;
+import com.stratio.casemanagement.repository.CaseParticipantRepository;
 import com.stratio.casemanagement.repository.CaseRawDataRepository;
 import com.stratio.casemanagement.repository.CaseRequestRepository;
 import lombok.Data;
@@ -23,6 +25,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.core.IsNull.notNullValue;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -35,8 +38,8 @@ public class CaseRequestServiceDefaultTest {
     private CaseRequestRepository mockCaseRequestRepo;
     @Mock
     private CaseRawDataRepository mockRawDataRepo;
-    @Spy
-    private ObjectMapper jacksonObjectMapper = new ObjectMapper();
+    @Mock
+    private CaseParticipantRepository mockParticipantRepo;
     @Spy
     private CaseRequestServiceRepositoryMapper spyMapper = new CaseRequestServiceRepositoryMapperImpl();
     @InjectMocks
@@ -48,6 +51,7 @@ public class CaseRequestServiceDefaultTest {
     private ArgumentCaptor<CaseRawData> repoCaseRawDataCaptor;
 
     private PodamFactory podamFactory = new PodamFactoryImpl();
+    private ObjectMapper jacksonObjectMapper = new ObjectMapper();
 
     @Test
     public void deleteCaseRequestById_MethodExecuted_ReturnAffectedRows() {
@@ -64,6 +68,50 @@ public class CaseRequestServiceDefaultTest {
         assertThat(result, is(returnedAffectedRowsFromRepository));
 
         verify(mockCaseRequestRepo).deleteCaseRequestById(eq(testId));
+    }
+
+    @Test
+    public void getCaseRequestById_NoParticipants_ReturnNullParticipants() {
+        // Given
+        final Long testId = 66L;
+
+        final com.stratio.casemanagement.model.repository.CaseRequest resultCaseRequestFromRepo =
+                podamFactory.manufacturePojo(com.stratio.casemanagement.model.repository.CaseRequest.class);
+        when(mockCaseRequestRepo.getCaseRequestById(any(Long.class))).thenReturn(resultCaseRequestFromRepo);
+
+        final CaseRawData resultRawDataFromRepo = podamFactory.manufacturePojo(CaseRawData.class);
+        when(mockRawDataRepo.getCaseRawDataById(any(Long.class))).thenReturn(resultRawDataFromRepo);
+
+        when(mockParticipantRepo.getCaseParticipantById(any(Long.class))).thenReturn(null);
+
+        // When
+        CaseRequest resultCaseRequest = classUnderTest.getCaseRequestById(testId);
+
+        // Then
+        assertThat(resultCaseRequest, is(notNullValue()));
+        assertThat(resultCaseRequest.getCaseParticipant(), is(nullValue()));
+    }
+
+    @Test
+    public void getCaseRequestById_NoRawData_ReturnNullRawData() {
+        // Given
+        final Long testId = 66L;
+
+        final com.stratio.casemanagement.model.repository.CaseRequest resultCaseRequestFromRepo =
+                podamFactory.manufacturePojo(com.stratio.casemanagement.model.repository.CaseRequest.class);
+        when(mockCaseRequestRepo.getCaseRequestById(any(Long.class))).thenReturn(resultCaseRequestFromRepo);
+
+        when(mockRawDataRepo.getCaseRawDataById(any(Long.class))).thenReturn(null);
+
+        final CaseParticipant resultParticipantFromRepo = podamFactory.manufacturePojo(CaseParticipant.class);
+        when(mockParticipantRepo.getCaseParticipantById(any(Long.class))).thenReturn(resultParticipantFromRepo);
+
+        // When
+        CaseRequest resultCaseRequest = classUnderTest.getCaseRequestById(testId);
+
+        // Then
+        assertThat(resultCaseRequest, is(notNullValue()));
+        assertThat(resultCaseRequest.getCaseRawData(), is(nullValue()));
     }
 
     @Test
@@ -94,20 +142,39 @@ public class CaseRequestServiceDefaultTest {
         final CaseRawData resultRawDataFromRepo = podamFactory.manufacturePojo(CaseRawData.class);
         when(mockRawDataRepo.getCaseRawDataById(any(Long.class))).thenReturn(resultRawDataFromRepo);
 
+        final CaseParticipant resultParticipantFromRepo = podamFactory.manufacturePojo(CaseParticipant.class);
+        when(mockParticipantRepo.getCaseParticipantById(any(Long.class))).thenReturn(resultParticipantFromRepo);
+
         // When
         CaseRequest resultCaseRequest = classUnderTest.getCaseRequestById(testId);
 
         // Then
         assertThat(resultCaseRequest, is(notNullValue()));
-        verifyExpectedResultFromRepositoryOutput(resultCaseRequestFromRepo, resultRawDataFromRepo, resultCaseRequest);
+        verifyExpectedResultFromRepositoryOutput(resultCaseRequestFromRepo, resultRawDataFromRepo, resultParticipantFromRepo, resultCaseRequest);
 
         verify(mockCaseRequestRepo).getCaseRequestById(eq(testId));
+        verify(mockParticipantRepo).getCaseParticipantById(eq(testId));
     }
 
     @Test
-    public void insertCaseRequest_EmptyRawData_NoRawDataInsertOnDB() {
+    public void insertCaseRequest_EmptyNoParticipant_NoParticipantInsertOnDB() {
+        testEmptyParticipant("");
+    }
+
+    @Test
+    public void insertCaseRequest_EmptyNoRawData_NoRawDataInsertOnDB() {
         // Given
         testEmptyCaseRawData("");
+    }
+
+    @Test
+    public void insertCaseRequest_EmptyNullParticipant_NoParticipantInsertOnDB() {
+        testEmptyParticipant(null);
+    }
+
+    @Test
+    public void insertCaseRequest_EmptyNullRawData_NoRawDataInsertOnDB() {
+        testEmptyCaseRawData(null);
     }
 
     @Test
@@ -131,11 +198,6 @@ public class CaseRequestServiceDefaultTest {
 
         CaseRawData sentCaseRawDataToRepo = repoCaseRawDataCaptor.getValue();
         verifySentCaseRawData(testServiceCaseRequest.getId(), testCaseRawData, sentCaseRawDataToRepo);
-    }
-
-    @Test
-    public void insertCaseRequest_NullRawData_NoRawDataInsertOnDB() {
-        testEmptyCaseRawData(null);
     }
 
     @Test
@@ -165,10 +227,11 @@ public class CaseRequestServiceDefaultTest {
         return caseRequest;
     }
 
-    private void testEmptyCaseRawData(String emptyValue) {
+    private void testEmptyCaseRawData(String emptyRawDataValue) {
+        assertTrue("This method only must be used with empty input!!", !StringUtils.hasText(emptyRawDataValue));
         // Given
         final CaseRequest testServiceCaseRequest = generateCaseRequestServiceWithNullDates();
-        testServiceCaseRequest.setCaseRawData(emptyValue);
+        testServiceCaseRequest.setCaseRawData(emptyRawDataValue);
 
         // When
         CaseRequest result = classUnderTest.insertCaseRequest(testServiceCaseRequest);
@@ -176,15 +239,26 @@ public class CaseRequestServiceDefaultTest {
         // Then
         verifyInsertResult(testServiceCaseRequest, result);
 
-        verify(mockCaseRequestRepo).insertCaseRequest(repoCaseRequestCaptor.capture());
         verify(mockRawDataRepo, never()).insertCaseRawData(any(CaseRawData.class));
-
-        com.stratio.casemanagement.model.repository.CaseRequest sentCaseRequestToRepo = repoCaseRequestCaptor.getValue();
-        verifySentCaseRequestAndDatesForCreate(testServiceCaseRequest, sentCaseRequestToRepo);
     }
 
+    private void testEmptyParticipant(String emptyParticipantValue) {
+        // Given
+        final CaseRequest testServiceCaseRequest = generateCaseRequestServiceWithNullDates();
+        testServiceCaseRequest.setCaseParticipant(emptyParticipantValue);
+
+        // When
+        CaseRequest result = classUnderTest.insertCaseRequest(testServiceCaseRequest);
+
+        // Then
+        verifyInsertResult(testServiceCaseRequest, result);
+
+        verify(mockParticipantRepo, never()).insertCaseParticipant(any(CaseParticipant.class));
+    }
+
+
     private void verifyExpectedResultFromRepositoryOutput(com.stratio.casemanagement.model.repository.CaseRequest requestFromRepo,
-                                                          CaseRawData rawDataFromRepo, CaseRequest serviceBean) {
+                                                          CaseRawData rawDataFromRepo, CaseParticipant participantFromRepo, CaseRequest serviceBean) {
         assertThat(serviceBean.getId(), is(requestFromRepo.getId()));
         assertThat(serviceBean.getEntityId(), is(requestFromRepo.getEntityId()));
         assertThat(serviceBean.getCreationDate(), is(requestFromRepo.getCreationDate()));
@@ -192,6 +266,7 @@ public class CaseRequestServiceDefaultTest {
         assertThat(serviceBean.getCreationUser(), is(requestFromRepo.getCreationUser()));
         assertThat(serviceBean.getModificationUser(), is(requestFromRepo.getModificationUser()));
         assertThat(serviceBean.getCaseRawData(), is(rawDataFromRepo.getRaw()));
+        assertThat(serviceBean.getCaseParticipant(), is(participantFromRepo.getParticipantsData()));
     }
 
     private void verifyInsertResult(CaseRequest inputCaseRequest, CaseRequest outputCaseRequest) {
@@ -202,8 +277,12 @@ public class CaseRequestServiceDefaultTest {
         assertThat(outputCaseRequest.getModificationUser(), is(inputCaseRequest.getModificationUser()));
         assertThat(outputCaseRequest.getCreationDate(), is(notNullValue()));
         assertThat(outputCaseRequest.getModificationDate(), is(notNullValue()));
+
         String inputCaseRawData = inputCaseRequest.getCaseRawData();
         assertThat(outputCaseRequest.getCaseRawData(), is(StringUtils.hasText(inputCaseRawData) ? inputCaseRawData : null));
+
+        String inputCaseParticipant = inputCaseRequest.getCaseParticipant();
+        assertThat(outputCaseRequest.getCaseParticipant(), is(StringUtils.hasText(inputCaseParticipant) ? inputCaseParticipant : null));
     }
 
     private void verifySentCaseRawData(Long createdIdForCaseRequest, String inputRawData, CaseRawData sentRawData) {

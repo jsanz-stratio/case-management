@@ -12,4 +12,5 @@ public class CaseRequestOutput {
     private String entityId;
 
     private String caseRawData;
+    private String caseParticipant;
 }
