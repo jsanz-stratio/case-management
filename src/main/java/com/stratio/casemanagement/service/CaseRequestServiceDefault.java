@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 
@@ -67,9 +68,11 @@ public class CaseRequestServiceDefault implements CaseRequestService {
         caseRequestRepository.insertCaseRequest(repositoryCaseRequest);
         CaseRequest outputCaseRequest = mapper.mapBToA(repositoryCaseRequest);
 
-        CaseRawData caseRawData = buildCaseRawData(inputCaseRequest, outputCaseRequest);
-        caseRawDataRepository.insertCaseRawData(caseRawData);
-        outputCaseRequest.setCaseRawData(inputCaseRequest.getCaseRawData());
+        if (StringUtils.hasText(inputCaseRequest.getCaseRawData())) {
+            CaseRawData caseRawData = buildCaseRawData(inputCaseRequest, outputCaseRequest);
+            caseRawDataRepository.insertCaseRawData(caseRawData);
+            outputCaseRequest.setCaseRawData(inputCaseRequest.getCaseRawData());
+        }
 
         log.debug("Exiting CaseRequestServiceDefault.insertCaseRequest with result: {}", outputCaseRequest);
 
