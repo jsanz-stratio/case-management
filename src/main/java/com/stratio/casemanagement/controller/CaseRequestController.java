@@ -63,6 +63,8 @@ public class CaseRequestController {
         log.debug("CaseRequestController.deleteCaseRequestById affected rows number: {}", affectedRows);
 
         return getResponseWithAffectedRows(affectedRows);
+
+        // TODO: No cascade delete on case_raw_data
     }
 
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -94,6 +96,8 @@ public class CaseRequestController {
         log.debug("CaseRequestController.updateCaseRequestById affected rows number: {}", affectedRows);
 
         return getResponseWithAffectedRows(affectedRows);
+
+        // TODO: No update on case_raw_data
     }
 
     private String generateLocationURIForCaseRequest(CaseRequestOutput response) {
