@@ -4,9 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stratio.casemanagement.model.mapper.CaseRequestServiceRepositoryMapper;
 import com.stratio.casemanagement.model.mapper.CaseRequestServiceRepositoryMapperImpl;
 import com.stratio.casemanagement.model.repository.CaseParticipant;
+import com.stratio.casemanagement.model.repository.CaseRawAttachment;
 import com.stratio.casemanagement.model.repository.CaseRawData;
 import com.stratio.casemanagement.model.service.CaseRequest;
 import com.stratio.casemanagement.repository.CaseParticipantRepository;
+import com.stratio.casemanagement.repository.CaseRawAttachmentRepository;
 import com.stratio.casemanagement.repository.CaseRawDataRepository;
 import com.stratio.casemanagement.repository.CaseRequestRepository;
 import lombok.Data;
@@ -18,14 +20,18 @@ import org.springframework.util.StringUtils;
 import uk.co.jemos.podam.api.PodamFactory;
 import uk.co.jemos.podam.api.PodamFactoryImpl;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.core.IsNull.notNullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -38,6 +44,8 @@ public class CaseRequestServiceDefaultTest {
     private CaseRequestRepository mockCaseRequestRepo;
     @Mock
     private CaseRawDataRepository mockRawDataRepo;
+    @Mock
+    private CaseRawAttachmentRepository mockRawAttachmentRepository;
     @Mock
     private CaseParticipantRepository mockParticipantRepo;
     @Spy
@@ -71,18 +79,18 @@ public class CaseRequestServiceDefaultTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void getCaseRequestById_NoParticipants_ReturnNullParticipants() {
         // Given
         final Long testId = 66L;
 
-        final com.stratio.casemanagement.model.repository.CaseRequest resultCaseRequestFromRepo =
-                podamFactory.manufacturePojo(com.stratio.casemanagement.model.repository.CaseRequest.class);
-        when(mockCaseRequestRepo.getCaseRequestById(any(Long.class))).thenReturn(resultCaseRequestFromRepo);
+        mockRepositoriesWith(
+                podamFactory.manufacturePojo(com.stratio.casemanagement.model.repository.CaseRequest.class),
+                podamFactory.manufacturePojo(CaseRawData.class),
+                null,
+                podamFactory.manufacturePojo(List.class, CaseRawAttachment.class)
 
-        final CaseRawData resultRawDataFromRepo = podamFactory.manufacturePojo(CaseRawData.class);
-        when(mockRawDataRepo.getCaseRawDataById(any(Long.class))).thenReturn(resultRawDataFromRepo);
-
-        when(mockParticipantRepo.getCaseParticipantById(any(Long.class))).thenReturn(null);
+        );
 
         // When
         CaseRequest resultCaseRequest = classUnderTest.getCaseRequestById(testId);
@@ -93,18 +101,58 @@ public class CaseRequestServiceDefaultTest {
     }
 
     @Test
+    public void getCaseRequestById_NoRawAttachmentsEmpty_ReturnEmptyListRawAttachments() {
+        // Given
+        final Long testId = 66L;
+
+        mockRepositoriesWith(
+                podamFactory.manufacturePojo(com.stratio.casemanagement.model.repository.CaseRequest.class),
+                podamFactory.manufacturePojo(CaseRawData.class),
+                podamFactory.manufacturePojo(CaseParticipant.class),
+                new ArrayList<>()
+        );
+
+        // When
+        CaseRequest resultCaseRequest = classUnderTest.getCaseRequestById(testId);
+
+        // Then
+        assertThat(resultCaseRequest, is(notNullValue()));
+        assertThat(resultCaseRequest.getCaseRawAttachments(), is(empty()));
+    }
+
+    @Test
+    public void getCaseRequestById_NoRawAttachments_ReturnNullRawAttachments() {
+        // Given
+        final Long testId = 66L;
+
+        mockRepositoriesWith(
+                podamFactory.manufacturePojo(com.stratio.casemanagement.model.repository.CaseRequest.class),
+                podamFactory.manufacturePojo(CaseRawData.class),
+                podamFactory.manufacturePojo(CaseParticipant.class),
+                null
+        );
+
+        // When
+        CaseRequest resultCaseRequest = classUnderTest.getCaseRequestById(testId);
+
+        // Then
+        assertThat(resultCaseRequest, is(notNullValue()));
+        assertThat(resultCaseRequest.getCaseRawAttachments(), is(nullValue()));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
     public void getCaseRequestById_NoRawData_ReturnNullRawData() {
         // Given
         final Long testId = 66L;
 
-        final com.stratio.casemanagement.model.repository.CaseRequest resultCaseRequestFromRepo =
-                podamFactory.manufacturePojo(com.stratio.casemanagement.model.repository.CaseRequest.class);
-        when(mockCaseRequestRepo.getCaseRequestById(any(Long.class))).thenReturn(resultCaseRequestFromRepo);
+        mockRepositoriesWith(
+                podamFactory.manufacturePojo(com.stratio.casemanagement.model.repository.CaseRequest.class),
+                null,
+                podamFactory.manufacturePojo(CaseParticipant.class),
+                podamFactory.manufacturePojo(List.class, CaseRawAttachment.class)
 
-        when(mockRawDataRepo.getCaseRawDataById(any(Long.class))).thenReturn(null);
-
-        final CaseParticipant resultParticipantFromRepo = podamFactory.manufacturePojo(CaseParticipant.class);
-        when(mockParticipantRepo.getCaseParticipantById(any(Long.class))).thenReturn(resultParticipantFromRepo);
+        );
 
         // When
         CaseRequest resultCaseRequest = classUnderTest.getCaseRequestById(testId);
@@ -145,15 +193,21 @@ public class CaseRequestServiceDefaultTest {
         final CaseParticipant resultParticipantFromRepo = podamFactory.manufacturePojo(CaseParticipant.class);
         when(mockParticipantRepo.getCaseParticipantById(any(Long.class))).thenReturn(resultParticipantFromRepo);
 
+        @SuppressWarnings("unchecked") final List<CaseRawAttachment> resultRawAttachmentListFromRepo =
+                podamFactory.manufacturePojo(List.class, CaseRawAttachment.class);
+        when(mockRawAttachmentRepository.getCaseRawAttachmenListByCaseId(any(Long.class))).thenReturn(resultRawAttachmentListFromRepo);
+
         // When
         CaseRequest resultCaseRequest = classUnderTest.getCaseRequestById(testId);
 
         // Then
         assertThat(resultCaseRequest, is(notNullValue()));
-        verifyExpectedResultFromRepositoryOutput(resultCaseRequestFromRepo, resultRawDataFromRepo, resultParticipantFromRepo, resultCaseRequest);
+        compareServiceResultAndRepositoryOutputs(resultCaseRequestFromRepo, resultRawDataFromRepo, resultRawAttachmentListFromRepo, resultParticipantFromRepo,
+                resultCaseRequest);
 
         verify(mockCaseRequestRepo).getCaseRequestById(eq(testId));
         verify(mockParticipantRepo).getCaseParticipantById(eq(testId));
+        verify(mockRawAttachmentRepository).getCaseRawAttachmenListByCaseId(eq(testId));
     }
 
     @Test
@@ -220,6 +274,42 @@ public class CaseRequestServiceDefaultTest {
         verifySentCaseRequestAndDatesForUpdate(testServiceCaseRequest, sentCaseRequestToRepo);
     }
 
+    private void compareRawAttachmentFromServiceAndRepository(com.stratio.casemanagement.model.service.CaseRawAttachment fromService,
+                                                              CaseRawAttachment fromRepo) {
+        assertThat(fromService.getCaseId(), is(fromRepo.getCaseId()));
+        assertThat(fromService.getSeqId(), is(fromRepo.getSeqId()));
+        assertThat(fromService.getData(), is(fromRepo.getData()));
+        assertThat(fromService.getMetadata(), is(fromRepo.getMetadata()));
+    }
+
+    private void compareRawAttachmentListFromServiceAndRepository(List<com.stratio.casemanagement.model.service.CaseRawAttachment> serviceList,
+                                                                  List<CaseRawAttachment> repoList) {
+        if (!Stream.of(serviceList, repoList).allMatch(Objects::isNull)) {
+            if (Stream.of(serviceList, repoList).anyMatch(Objects::isNull)) {
+                fail("Raw attachment lists are not equal");
+            } else if (serviceList.size() != repoList.size()) {
+                fail("Raw attachment lists are not equal");
+            } else {
+                IntStream.range(0, serviceList.size()).forEach(i -> compareRawAttachmentFromServiceAndRepository(serviceList.get(i), repoList.get(i)));
+            }
+        }
+    }
+
+    private void compareServiceResultAndRepositoryOutputs(com.stratio.casemanagement.model.repository.CaseRequest requestFromRepo,
+                                                          CaseRawData rawDataFromRepo, List<CaseRawAttachment> rawAttachmentListFromRepo,
+                                                          CaseParticipant participantFromRepo, CaseRequest resultFromService) {
+        assertThat(resultFromService.getId(), is(requestFromRepo.getId()));
+        assertThat(resultFromService.getEntityId(), is(requestFromRepo.getEntityId()));
+        assertThat(resultFromService.getCreationDate(), is(requestFromRepo.getCreationDate()));
+        assertThat(resultFromService.getModificationDate(), is(requestFromRepo.getModificationDate()));
+        assertThat(resultFromService.getCreationUser(), is(requestFromRepo.getCreationUser()));
+        assertThat(resultFromService.getModificationUser(), is(requestFromRepo.getModificationUser()));
+        assertThat(resultFromService.getCaseRawData(), is(rawDataFromRepo.getRaw()));
+        assertThat(resultFromService.getCaseParticipant(), is(participantFromRepo.getParticipantsData()));
+
+        compareRawAttachmentListFromServiceAndRepository(resultFromService.getCaseRawAttachments(), rawAttachmentListFromRepo);
+    }
+
     private CaseRequest generateCaseRequestServiceWithNullDates() {
         CaseRequest caseRequest = podamFactory.manufacturePojo(CaseRequest.class);
         caseRequest.setCreationDate(null);
@@ -227,8 +317,17 @@ public class CaseRequestServiceDefaultTest {
         return caseRequest;
     }
 
+    private void mockRepositoriesWith(com.stratio.casemanagement.model.repository.CaseRequest resultForCaseRequest, CaseRawData resultForRawData,
+                                      CaseParticipant resultForParticipant, List<CaseRawAttachment> resultForRawAttachmentList) {
+        when(mockCaseRequestRepo.getCaseRequestById(any(Long.class))).thenReturn(resultForCaseRequest);
+        when(mockRawDataRepo.getCaseRawDataById(any(Long.class))).thenReturn(resultForRawData);
+        when(mockParticipantRepo.getCaseParticipantById(any(Long.class))).thenReturn(resultForParticipant);
+        when(mockRawAttachmentRepository.getCaseRawAttachmenListByCaseId(any(Long.class))).thenReturn(resultForRawAttachmentList);
+    }
+
     private void testEmptyCaseRawData(String emptyRawDataValue) {
         assertTrue("This method only must be used with empty input!!", !StringUtils.hasText(emptyRawDataValue));
+
         // Given
         final CaseRequest testServiceCaseRequest = generateCaseRequestServiceWithNullDates();
         testServiceCaseRequest.setCaseRawData(emptyRawDataValue);
@@ -243,6 +342,8 @@ public class CaseRequestServiceDefaultTest {
     }
 
     private void testEmptyParticipant(String emptyParticipantValue) {
+        assertTrue("This method only must be used with empty input!!", !StringUtils.hasText(emptyParticipantValue));
+
         // Given
         final CaseRequest testServiceCaseRequest = generateCaseRequestServiceWithNullDates();
         testServiceCaseRequest.setCaseParticipant(emptyParticipantValue);
@@ -254,19 +355,6 @@ public class CaseRequestServiceDefaultTest {
         verifyInsertResult(testServiceCaseRequest, result);
 
         verify(mockParticipantRepo, never()).insertCaseParticipant(any(CaseParticipant.class));
-    }
-
-
-    private void verifyExpectedResultFromRepositoryOutput(com.stratio.casemanagement.model.repository.CaseRequest requestFromRepo,
-                                                          CaseRawData rawDataFromRepo, CaseParticipant participantFromRepo, CaseRequest serviceBean) {
-        assertThat(serviceBean.getId(), is(requestFromRepo.getId()));
-        assertThat(serviceBean.getEntityId(), is(requestFromRepo.getEntityId()));
-        assertThat(serviceBean.getCreationDate(), is(requestFromRepo.getCreationDate()));
-        assertThat(serviceBean.getModificationDate(), is(requestFromRepo.getModificationDate()));
-        assertThat(serviceBean.getCreationUser(), is(requestFromRepo.getCreationUser()));
-        assertThat(serviceBean.getModificationUser(), is(requestFromRepo.getModificationUser()));
-        assertThat(serviceBean.getCaseRawData(), is(rawDataFromRepo.getRaw()));
-        assertThat(serviceBean.getCaseParticipant(), is(participantFromRepo.getParticipantsData()));
     }
 
     private void verifyInsertResult(CaseRequest inputCaseRequest, CaseRequest outputCaseRequest) {

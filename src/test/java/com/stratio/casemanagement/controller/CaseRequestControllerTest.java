@@ -7,9 +7,11 @@ import com.stratio.casemanagement.model.mapper.CaseRequestControllerInboundMappe
 import com.stratio.casemanagement.model.mapper.CaseRequestControllerInboundMapperImpl;
 import com.stratio.casemanagement.model.mapper.CaseRequestControllerOutboundMapper;
 import com.stratio.casemanagement.model.mapper.CaseRequestControllerOutboundMapperImpl;
+import com.stratio.casemanagement.model.service.CaseRawAttachment;
 import com.stratio.casemanagement.model.service.CaseRequest;
 import com.stratio.casemanagement.service.CaseRequestService;
 import lombok.Data;
+import org.hamcrest.Matcher;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,6 +31,8 @@ import static com.stratio.casemanagement.config.SwaggerConfiguration.API_PREFIX;
 import static com.stratio.casemanagement.controller.CaseRequestController.API_BASE_PATH;
 import static com.stratio.casemanagement.controller.CaseRequestController.API_VERSION;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hamcrest.core.IsNull.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -61,11 +65,6 @@ public class CaseRequestControllerTest {
     private PodamFactory podamFactory = new PodamFactoryImpl();
     private MockMvc mockMvc;
     private ObjectMapper jsonMapper = new ObjectMapper();
-
-    @Before
-    public void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(classUnderTest).build();
-    }
 
     @Test
     public void createCaseRequest_ValidInput_Return201CreatedAndMappedEntity() throws Exception {
@@ -176,17 +175,27 @@ public class CaseRequestControllerTest {
                         .accept(MediaType.APPLICATION_JSON_UTF8)
         )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("id").value(resultCaseRequestFromService.getId()))
-                .andExpect(jsonPath("creationDate").value(resultCaseRequestFromService.getCreationDate().toString()))
-                .andExpect(jsonPath("creationUser").value(resultCaseRequestFromService.getCreationUser()))
-                .andExpect(jsonPath("modificationDate").value(resultCaseRequestFromService.getModificationDate().toString()))
-                .andExpect(jsonPath("modificationUser").value(resultCaseRequestFromService.getModificationUser()))
-                .andExpect(jsonPath("entityId").value(resultCaseRequestFromService.getEntityId()))
-                .andExpect(jsonPath("caseRawData").value(resultCaseRequestFromService.getCaseRawData()))
-                .andExpect(jsonPath("caseParticipant").value(resultCaseRequestFromService.getCaseParticipant()));
+                .andExpect(jsonPath("$.id", is(resultCaseRequestFromService.getId())))
+                .andExpect(jsonPath("$.creationDate", is(resultCaseRequestFromService.getCreationDate().toString())))
+                .andExpect(jsonPath("$.creationUser", is(resultCaseRequestFromService.getCreationUser())))
+                .andExpect(jsonPath("$.modificationDate", is(resultCaseRequestFromService.getModificationDate().toString())))
+                .andExpect(jsonPath("$.modificationUser", is(resultCaseRequestFromService.getModificationUser())))
+                .andExpect(jsonPath("$.entityId", is(resultCaseRequestFromService.getEntityId())))
+                .andExpect(jsonPath("$.caseRawData", is(resultCaseRequestFromService.getCaseRawData())))
+                .andExpect(jsonPath("$.caseRawAttachments", hasSize(resultCaseRequestFromService.getCaseRawAttachments().size())))
+                .andExpect(jsonPath("$.caseRawAttachments[*].caseId", hasAllCaseIdItems(resultCaseRequestFromService)))
+                .andExpect(jsonPath("$.caseRawAttachments[*].seqId", hasAllSeqIdItems(resultCaseRequestFromService)))
+                .andExpect(jsonPath("$.caseRawAttachments[*].data", hasAllDataItems(resultCaseRequestFromService)))
+                .andExpect(jsonPath("$.caseRawAttachments[*].metadata", hasAllMetadataItems(resultCaseRequestFromService)))
+                .andExpect(jsonPath("$.caseParticipant", is(resultCaseRequestFromService.getCaseParticipant())));
 
 
         verify(mockService).getCaseRequestById(eq(testId));
+    }
+
+    @Before
+    public void setUp() {
+        mockMvc = MockMvcBuilders.standaloneSetup(classUnderTest).build();
     }
 
     @Test
@@ -251,6 +260,22 @@ public class CaseRequestControllerTest {
 
     private String generateExpectedLocationUri(CaseRequest resultCaseRequestFromService) {
         return API_PREFIX + API_VERSION + API_BASE_PATH + "/" + resultCaseRequestFromService.getId();
+    }
+
+    private Matcher<Iterable<? extends Long>> hasAllCaseIdItems(CaseRequest resultCaseRequestFromService) {
+        return containsInAnyOrder(resultCaseRequestFromService.getCaseRawAttachments().stream().map(CaseRawAttachment::getCaseId).toArray(Long[]::new));
+    }
+
+    private Matcher<Iterable<? extends String>> hasAllDataItems(CaseRequest resultCaseRequestFromService) {
+        return containsInAnyOrder(resultCaseRequestFromService.getCaseRawAttachments().stream().map(CaseRawAttachment::getData).toArray(String[]::new));
+    }
+
+    private Matcher<Iterable<? extends String>> hasAllMetadataItems(CaseRequest resultCaseRequestFromService) {
+        return containsInAnyOrder(resultCaseRequestFromService.getCaseRawAttachments().stream().map(CaseRawAttachment::getMetadata).toArray(String[]::new));
+    }
+
+    private Matcher<Iterable<? extends Long>> hasAllSeqIdItems(CaseRequest resultCaseRequestFromService) {
+        return containsInAnyOrder(resultCaseRequestFromService.getCaseRawAttachments().stream().map(CaseRawAttachment::getSeqId).toArray(Long[]::new));
     }
 
     private void verifyServiceCallCommonParameters(CaseRequestInput testCaseRequest, CaseRequest caseRequestForServiceCall) {

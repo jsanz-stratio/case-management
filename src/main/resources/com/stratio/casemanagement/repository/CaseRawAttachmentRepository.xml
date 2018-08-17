@@ -1,0 +1,17 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.stratio.casemanagement.repository.CaseRawAttachmentRepository">
+
+    <resultMap id="caseRawAttachmentResult" type="com.stratio.casemanagement.model.repository.CaseRawAttachment">
+        <result property="caseId" column="case_id" />
+        <result property="seqId" column="seqid" />
+        <result property="data" column="data" />
+        <result property="metadata" column="metadata" />
+    </resultMap>
+
+    <select id="getCaseRawAttachmenListByCaseId" resultMap="caseRawAttachmentResult">
+        SELECT case_id, seqid, data, metadata
+        FROM applications.case_raw_attachment
+        WHERE case_id = #{caseId}
+    </select>
+</mapper>

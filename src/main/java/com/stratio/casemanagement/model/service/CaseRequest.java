@@ -3,6 +3,7 @@ package com.stratio.casemanagement.model.service;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 public class CaseRequest {
@@ -14,5 +15,6 @@ public class CaseRequest {
     private String entityId;
 
     private String caseRawData;
+    private List<CaseRawAttachment> caseRawAttachments;
     private String caseParticipant;
 }

@@ -43,7 +43,7 @@ public class CaseRequestController {
         log.info("Entering request (POST) {}{}", API_VERSION, API_BASE_PATH);
         log.debug("Entering CaseRequestController.createCaseRequest with parameters: {}", caseRequest);
 
-        CaseRequestOutput result = outMapper.mapAToB(caseRequestService.insertCaseRequest(inMapper.mapForCreate(caseRequest)));
+        CaseRequestOutput result = outMapper.mapCaseRequestFromService(caseRequestService.insertCaseRequest(inMapper.mapForCreate(caseRequest)));
 
         log.debug("Exiting CaseRequestController.createCaseRequest with result: {}", result);
 
@@ -74,7 +74,7 @@ public class CaseRequestController {
         log.info("Entering request (GET) {}{}/{}", API_VERSION, API_BASE_PATH, id);
         log.debug("Entering CaseRequestController.getCaseRequestById with parameters: {}", id);
 
-        CaseRequestOutput result = outMapper.mapAToB(caseRequestService.getCaseRequestById(id));
+        CaseRequestOutput result = outMapper.mapCaseRequestFromService(caseRequestService.getCaseRequestById(id));
 
         log.debug("Exiting CaseRequestController.getCaseRequestById with result: {}", result);
 

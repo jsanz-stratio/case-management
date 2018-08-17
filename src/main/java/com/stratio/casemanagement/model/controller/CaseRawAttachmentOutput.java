@@ -1,9 +1,9 @@
-package com.stratio.casemanagement.model.repository;
+package com.stratio.casemanagement.model.controller;
 
 import lombok.Data;
 
 @Data
-public class CaseRawAttachment {
+public class CaseRawAttachmentOutput {
     private Long caseId;
     private Long seqId;
     private String data;

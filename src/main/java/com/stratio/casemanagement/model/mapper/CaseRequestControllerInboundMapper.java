@@ -7,15 +7,15 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
 
 @Mapper(componentModel = "spring")
-public interface CaseRequestControllerInboundMapper {
+public interface CaseRequestControllerInboundMapper extends BaseMapper {
     @Mappings({
-            @Mapping(source = "operationUser", target="creationUser"),
-            @Mapping(source = "operationUser", target="modificationUser")
+            @Mapping(source = "operationUser", target = "creationUser"),
+            @Mapping(source = "operationUser", target = "modificationUser")
     })
     CaseRequest mapForCreate(CaseRequestInput request);
 
     @Mappings({
-            @Mapping(source = "operationUser", target="modificationUser")
+            @Mapping(source = "operationUser", target = "modificationUser")
     })
     CaseRequest mapForUpdate(CaseRequestInput request);
 }

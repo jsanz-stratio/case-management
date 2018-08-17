@@ -2,9 +2,11 @@ package com.stratio.casemanagement.service;
 
 import com.stratio.casemanagement.model.mapper.CaseRequestServiceRepositoryMapper;
 import com.stratio.casemanagement.model.repository.CaseParticipant;
+import com.stratio.casemanagement.model.repository.CaseRawAttachment;
 import com.stratio.casemanagement.model.repository.CaseRawData;
 import com.stratio.casemanagement.model.service.CaseRequest;
 import com.stratio.casemanagement.repository.CaseParticipantRepository;
+import com.stratio.casemanagement.repository.CaseRawAttachmentRepository;
 import com.stratio.casemanagement.repository.CaseRawDataRepository;
 import com.stratio.casemanagement.repository.CaseRequestRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -21,14 +24,17 @@ public class CaseRequestServiceDefault implements CaseRequestService {
 
     private final CaseRequestRepository caseRequestRepository;
     private final CaseRawDataRepository caseRawDataRepository;
+    private final CaseRawAttachmentRepository caseRawAttachmentRepository;
     private final CaseParticipantRepository caseParticipantRepository;
     private final CaseRequestServiceRepositoryMapper mapper;
 
     @Autowired
     public CaseRequestServiceDefault(CaseRequestRepository caseRequestRepository, CaseRawDataRepository caseRawDataRepository,
+                                     CaseRawAttachmentRepository caseRawAttachmentRepository,
                                      CaseParticipantRepository caseParticipantRepository, CaseRequestServiceRepositoryMapper mapper) {
         this.caseRequestRepository = caseRequestRepository;
         this.caseRawDataRepository = caseRawDataRepository;
+        this.caseRawAttachmentRepository = caseRawAttachmentRepository;
         this.caseParticipantRepository = caseParticipantRepository;
         this.mapper = mapper;
     }
@@ -48,9 +54,10 @@ public class CaseRequestServiceDefault implements CaseRequestService {
     public CaseRequest getCaseRequestById(Long id) {
         log.debug("Entering CaseRequestServiceDefault.getCaseRequestById with parameters: {}", id);
 
-        CaseRequest result = mapper.mapBToA(caseRequestRepository.getCaseRequestById(id));
+        CaseRequest result = mapper.mapCaseRequestFromRepoToService(caseRequestRepository.getCaseRequestById(id));
         if (result != null) {
             insertCaseRawDataInResult(id, result);
+            insertCaseRawAttachmentsInResult(id, result);
             insertParticipantsInResult(id, result);
         }
 
@@ -66,9 +73,9 @@ public class CaseRequestServiceDefault implements CaseRequestService {
 
         setDatesAtCreationTime(inputCaseRequest);
 
-        com.stratio.casemanagement.model.repository.CaseRequest repositoryCaseRequest = mapper.mapAToB(inputCaseRequest);
+        com.stratio.casemanagement.model.repository.CaseRequest repositoryCaseRequest = mapper.mapCaseRequestFromServiceToRepo(inputCaseRequest);
         caseRequestRepository.insertCaseRequest(repositoryCaseRequest);
-        CaseRequest outputCaseRequest = mapper.mapBToA(repositoryCaseRequest);
+        CaseRequest outputCaseRequest = mapper.mapCaseRequestFromRepoToService(repositoryCaseRequest);
 
         if (StringUtils.hasText(inputCaseRequest.getCaseRawData())) {
             CaseRawData caseRawData = buildCaseRawData(inputCaseRequest, outputCaseRequest);
@@ -94,7 +101,7 @@ public class CaseRequestServiceDefault implements CaseRequestService {
 
         setDatesAtModificationTime(caseRequest);
 
-        int affectedRows = caseRequestRepository.updateCaseRequestById(id, mapper.mapAToB(caseRequest));
+        int affectedRows = caseRequestRepository.updateCaseRequestById(id, mapper.mapCaseRequestFromServiceToRepo(caseRequest));
 
         log.debug("Exiting CaseRequestServiceDefault.updateCaseRequestById with result: {}", affectedRows);
 
@@ -118,6 +125,11 @@ public class CaseRequestServiceDefault implements CaseRequestService {
     private void insertCaseRawDataInResult(Long id, CaseRequest result) {
         CaseRawData caseRawDataById = caseRawDataRepository.getCaseRawDataById(id);
         result.setCaseRawData(caseRawDataById != null ? caseRawDataById.getRaw() : null);
+    }
+
+    private void insertCaseRawAttachmentsInResult(Long id, CaseRequest result) {
+        List<CaseRawAttachment> caseRawAttachmenListByCaseId = caseRawAttachmentRepository.getCaseRawAttachmenListByCaseId(id);
+        result.setCaseRawAttachments(mapper.mapRawAttachmentListFromRepoToService(caseRawAttachmenListByCaseId));
     }
 
     private void insertParticipantsInResult(Long id, CaseRequest result) {

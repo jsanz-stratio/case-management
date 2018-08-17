@@ -2,6 +2,8 @@ package com.stratio.casemanagement.model.controller;
 
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class CaseRequestOutput {
     private Long id;
@@ -12,5 +14,6 @@ public class CaseRequestOutput {
     private String entityId;
 
     private String caseRawData;
+    private List<CaseRawAttachmentOutput> caseRawAttachments;
     private String caseParticipant;
 }
