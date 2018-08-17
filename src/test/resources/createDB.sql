@@ -50,7 +50,7 @@ ALTER TABLE applications.case_raw_data OWNER TO postgres;
 DROP TABLE IF EXISTS applications.case_raw_attachment CASCADE;
 CREATE TABLE applications.case_raw_attachment(
 	case_id bigint NOT NULL,
-	seqid smallint NOT NULL,
+	seqid bigserial NOT NULL,
 	data text NOT NULL,
 	metadata json NOT NULL,
 	CONSTRAINT case_attachment_pk PRIMARY KEY (case_id,seqid)
