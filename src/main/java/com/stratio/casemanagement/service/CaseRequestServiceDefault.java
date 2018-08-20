@@ -13,10 +13,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @Slf4j
@@ -83,6 +86,20 @@ public class CaseRequestServiceDefault implements CaseRequestService {
             outputCaseRequest.setCaseRawData(inputCaseRequest.getCaseRawData());
         }
 
+        if (!CollectionUtils.isEmpty(inputCaseRequest.getCaseRawAttachments())) {
+            inputCaseRequest.getCaseRawAttachments().stream().filter(Objects::nonNull).forEach(rawAt -> {
+                System.out.println("Inserting rawAt... = " + rawAt);
+                CaseRawAttachment repoRawAt = mapper.mapRawAttachmentFromServiceToRepo(rawAt);
+                repoRawAt.setCaseId(outputCaseRequest.getId());
+                System.out.println("Inserting repoRawAt... = " + repoRawAt);
+                caseRawAttachmentRepository.insertCaseRawAttachment(repoRawAt);
+                System.out.println("repoRawAt inserted... = " + repoRawAt);
+                com.stratio.casemanagement.model.service.CaseRawAttachment outputRawAt = mapper.mapRawAttachmentFromRepoToService(repoRawAt);
+                System.out.println("outputRawAt inserted... = " + outputRawAt);
+                outputCaseRequest.addCaseRawAttachment(outputRawAt);
+            });
+        }
+
         if (StringUtils.hasText(inputCaseRequest.getCaseParticipant())) {
             CaseParticipant caseParticipant = buildParticipant(inputCaseRequest, outputCaseRequest);
             caseParticipantRepository.insertCaseParticipant(caseParticipant);
@@ -128,7 +145,7 @@ public class CaseRequestServiceDefault implements CaseRequestService {
     }
 
     private void insertCaseRawAttachmentsInResult(Long id, CaseRequest result) {
-        List<CaseRawAttachment> caseRawAttachmenListByCaseId = caseRawAttachmentRepository.getCaseRawAttachmenListByCaseId(id);
+        List<CaseRawAttachment> caseRawAttachmenListByCaseId = caseRawAttachmentRepository.getCaseRawAttachmentListByCaseId(id);
         result.setCaseRawAttachments(mapper.mapRawAttachmentListFromRepoToService(caseRawAttachmenListByCaseId));
     }
 

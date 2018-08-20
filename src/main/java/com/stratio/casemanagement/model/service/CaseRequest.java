@@ -3,7 +3,9 @@ package com.stratio.casemanagement.model.service;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Data
 public class CaseRequest {
@@ -17,4 +19,11 @@ public class CaseRequest {
     private String caseRawData;
     private List<CaseRawAttachment> caseRawAttachments;
     private String caseParticipant;
+
+    public void addCaseRawAttachment(CaseRawAttachment caseRawAttachment) {
+        if (Objects.isNull(caseRawAttachments)) {
+            caseRawAttachments = new ArrayList<>();
+        }
+        caseRawAttachments.add(caseRawAttachment);
+    }
 }

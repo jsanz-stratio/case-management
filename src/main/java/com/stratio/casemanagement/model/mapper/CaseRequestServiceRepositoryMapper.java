@@ -12,5 +12,9 @@ public interface CaseRequestServiceRepositoryMapper extends BaseMapper {
 
     com.stratio.casemanagement.model.repository.CaseRequest mapCaseRequestFromServiceToRepo(com.stratio.casemanagement.model.service.CaseRequest fromService);
 
+    CaseRawAttachment mapRawAttachmentFromRepoToService(com.stratio.casemanagement.model.repository.CaseRawAttachment fromRepo);
+
+    com.stratio.casemanagement.model.repository.CaseRawAttachment mapRawAttachmentFromServiceToRepo(CaseRawAttachment fromService);
+
     List<CaseRawAttachment> mapRawAttachmentListFromRepoToService(List<com.stratio.casemanagement.model.repository.CaseRawAttachment> fromRepo);
 }

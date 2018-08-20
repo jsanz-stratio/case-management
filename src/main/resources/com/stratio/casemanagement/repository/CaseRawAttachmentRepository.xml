@@ -9,7 +9,14 @@
         <result property="metadata" column="metadata" />
     </resultMap>
 
-    <select id="getCaseRawAttachmenListByCaseId" resultMap="caseRawAttachmentResult">
+    <insert id="insertCaseRawAttachment" useGeneratedKeys="true" keyProperty="seqId" keyColumn="seqid">
+        INSERT INTO
+            applications.case_raw_attachment(case_id, data, metadata)
+        VALUES
+            (#{caseId}, #{data}, #{metadata}::json)
+    </insert>
+
+    <select id="getCaseRawAttachmentListByCaseId" resultMap="caseRawAttachmentResult">
         SELECT case_id, seqid, data, metadata
         FROM applications.case_raw_attachment
         WHERE case_id = #{caseId}

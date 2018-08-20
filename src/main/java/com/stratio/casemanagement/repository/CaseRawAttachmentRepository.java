@@ -8,5 +8,6 @@ import java.util.List;
 
 @Mapper
 public interface CaseRawAttachmentRepository {
-    List<CaseRawAttachment> getCaseRawAttachmenListByCaseId(@Param("caseId") Long caseId);
+    List<CaseRawAttachment> getCaseRawAttachmentListByCaseId(@Param("caseId") Long caseId);
+    int insertCaseRawAttachment(CaseRawAttachment caseRawAttachment);
 }

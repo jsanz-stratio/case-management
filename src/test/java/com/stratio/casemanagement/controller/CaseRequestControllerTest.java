@@ -19,7 +19,6 @@ import org.mockito.*;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import uk.co.jemos.podam.api.PodamFactory;
 import uk.co.jemos.podam.api.PodamFactoryImpl;
@@ -84,14 +83,20 @@ public class CaseRequestControllerTest {
                         .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
         )
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("id").value(returnedCaseRequestFromService.getId()))
-                .andExpect(jsonPath("creationDate").value(returnedCaseRequestFromService.getCreationDate().toString()))
-                .andExpect(jsonPath("creationUser").value(returnedCaseRequestFromService.getCreationUser()))
-                .andExpect(jsonPath("modificationDate").value(returnedCaseRequestFromService.getModificationDate().toString()))
-                .andExpect(jsonPath("modificationUser").value(returnedCaseRequestFromService.getModificationUser()))
-                .andExpect(jsonPath("entityId").value(returnedCaseRequestFromService.getEntityId()))
-                .andExpect(jsonPath("caseRawData").value(returnedCaseRequestFromService.getCaseRawData()))
-                .andExpect(MockMvcResultMatchers.header().string("location", generateExpectedLocationUri(returnedCaseRequestFromService)));
+                .andExpect(jsonPath("$.id", is(returnedCaseRequestFromService.getId())))
+                .andExpect(jsonPath("$.creationDate", is(returnedCaseRequestFromService.getCreationDate().toString())))
+                .andExpect(jsonPath("$.creationUser", is(returnedCaseRequestFromService.getCreationUser())))
+                .andExpect(jsonPath("$.modificationDate", is(returnedCaseRequestFromService.getModificationDate().toString())))
+                .andExpect(jsonPath("$.modificationUser", is(returnedCaseRequestFromService.getModificationUser())))
+                .andExpect(jsonPath("$.entityId", is(returnedCaseRequestFromService.getEntityId())))
+                .andExpect(jsonPath("$.caseRawData", is(returnedCaseRequestFromService.getCaseRawData())))
+                .andExpect(jsonPath("$.caseRawAttachments", hasSize(returnedCaseRequestFromService.getCaseRawAttachments().size())))
+                .andExpect(jsonPath("$.caseRawAttachments[*].caseId", hasAllCaseIdItems(returnedCaseRequestFromService)))
+                .andExpect(jsonPath("$.caseRawAttachments[*].seqId", hasAllSeqIdItems(returnedCaseRequestFromService)))
+                .andExpect(jsonPath("$.caseRawAttachments[*].data", hasAllDataItems(returnedCaseRequestFromService)))
+                .andExpect(jsonPath("$.caseRawAttachments[*].metadata", hasAllMetadataItems(returnedCaseRequestFromService)))
+                .andExpect(jsonPath("$.caseParticipant", is(returnedCaseRequestFromService.getCaseParticipant())))
+                .andExpect(header().string("location", generateExpectedLocationUri(returnedCaseRequestFromService)));
 
         verify(mockService).insertCaseRequest(caseRequestCaptor.capture());
         CaseRequest caseRequestForServiceCall = caseRequestCaptor.getValue();
