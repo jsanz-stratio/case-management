@@ -3,7 +3,7 @@ package com.stratio.casemanagement.service;
 import com.stratio.casemanagement.model.mapper.CaseRequestServiceRepositoryMapper;
 import com.stratio.casemanagement.model.mapper.CaseRequestServiceRepositoryMapperImpl;
 import com.stratio.casemanagement.model.service.CaseRequest;
-import com.stratio.casemanagement.repository.CaseRequestRepository;
+import com.stratio.casemanagement.repository.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.*;
@@ -26,9 +26,16 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class CaseRequestServiceDefaultTest {
 
-
     @Mock
     private CaseRequestRepository mockCaseRequestRepo;
+    @Mock
+    private CaseRawDataRepository mockRawDataRepo;
+    @Mock
+    private CaseRawAttachmentRepository mockRawAttachmentRepo;
+    @Mock
+    private CaseParticipantRepository mockParticipantRepo;
+    @Mock
+    private CaseApplicationRepository mockApplicationRepo;
     @Spy
     private CaseRequestServiceRepositoryMapper spyMapper = new CaseRequestServiceRepositoryMapperImpl();
     @InjectMocks

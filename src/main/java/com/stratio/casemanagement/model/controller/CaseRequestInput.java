@@ -12,4 +12,5 @@ public class CaseRequestInput {
     private String caseRawData;
     private List<CaseRawAttachmentInput> caseRawAttachments;
     private String caseParticipant;
+    private List<CaseApplicationInput> caseApplications;
 }

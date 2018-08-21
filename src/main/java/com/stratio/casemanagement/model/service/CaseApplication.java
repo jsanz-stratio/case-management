@@ -1,4 +1,4 @@
-package com.stratio.casemanagement.model.repository;
+package com.stratio.casemanagement.model.service;
 
 import lombok.Data;
 

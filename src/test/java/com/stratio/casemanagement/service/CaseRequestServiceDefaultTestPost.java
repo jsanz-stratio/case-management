@@ -6,11 +6,9 @@ import com.stratio.casemanagement.model.mapper.CaseRequestServiceRepositoryMappe
 import com.stratio.casemanagement.model.repository.CaseParticipant;
 import com.stratio.casemanagement.model.repository.CaseRawAttachment;
 import com.stratio.casemanagement.model.repository.CaseRawData;
+import com.stratio.casemanagement.model.service.CaseApplication;
 import com.stratio.casemanagement.model.service.CaseRequest;
-import com.stratio.casemanagement.repository.CaseParticipantRepository;
-import com.stratio.casemanagement.repository.CaseRawAttachmentRepository;
-import com.stratio.casemanagement.repository.CaseRawDataRepository;
-import com.stratio.casemanagement.repository.CaseRequestRepository;
+import com.stratio.casemanagement.repository.*;
 import lombok.Data;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,6 +44,8 @@ public class CaseRequestServiceDefaultTestPost {
     private CaseRawAttachmentRepository mockRawAttachmentRepo;
     @Mock
     private CaseParticipantRepository mockParticipantRepo;
+    @Mock
+    private CaseApplicationRepository mockApplicationRepo;
     @Spy
     private CaseRequestServiceRepositoryMapper spyMapper = new CaseRequestServiceRepositoryMapperImpl();
     @InjectMocks
@@ -57,9 +57,16 @@ public class CaseRequestServiceDefaultTestPost {
     private ArgumentCaptor<CaseRawData> repoCaseRawDataCaptor;
     @Captor
     private ArgumentCaptor<CaseRawAttachment> repoCaseRawAttachmentCaptor;
+    @Captor
+    private ArgumentCaptor<com.stratio.casemanagement.model.repository.CaseApplication> repoCaseApplicationCaptor;
 
     private PodamFactory podamFactory = new PodamFactoryImpl();
     private ObjectMapper jacksonObjectMapper = new ObjectMapper();
+
+    @Test
+    public void insertCaseRequest_EmptyNoApplications_NoApplicationInsertOnDB() {
+        testEmptyCaseApplications(new ArrayList<>());
+    }
 
     @Test
     public void insertCaseRequest_EmptyNoParticipant_NoParticipantInsertOnDB() {
@@ -74,6 +81,11 @@ public class CaseRequestServiceDefaultTestPost {
     @Test
     public void insertCaseRequest_EmptyNoRawData_NoRawDataInsertOnDB() {
         testEmptyCaseRawData("");
+    }
+
+    @Test
+    public void insertCaseRequest_EmptyNullApplications_NoApplicationInsertOnDB() {
+        testEmptyCaseApplications(null);
     }
 
     @Test
@@ -109,15 +121,50 @@ public class CaseRequestServiceDefaultTestPost {
         com.stratio.casemanagement.model.repository.CaseRequest sentCaseRequestToRepo = repoCaseRequestCaptor.getValue();
         verifySentCaseRequestAndDatesForCreate(testServiceCaseRequest, sentCaseRequestToRepo);
 
+        Long caseRequestGeneratedId = testServiceCaseRequest.getId();
+
         long notNullRawAttachments = testServiceCaseRequest.getCaseRawAttachments().stream().filter(Objects::nonNull).count();
         verify(mockRawAttachmentRepo, times((int) notNullRawAttachments)).insertCaseRawAttachment(repoCaseRawAttachmentCaptor.capture());
         List<CaseRawAttachment> sentCaseRawAttachmentsToRepo = repoCaseRawAttachmentCaptor.getAllValues();
         compareInsertedRawAttachmentListInRepoWithInput(testServiceCaseRequest.getCaseRawAttachments(), sentCaseRawAttachmentsToRepo,
-                testServiceCaseRequest.getId());
+                caseRequestGeneratedId);
 
         verify(mockRawDataRepo).insertCaseRawData(repoCaseRawDataCaptor.capture());
         CaseRawData sentCaseRawDataToRepo = repoCaseRawDataCaptor.getValue();
-        verifySentCaseRawData(testServiceCaseRequest.getId(), testCaseRawData, sentCaseRawDataToRepo);
+        verifySentCaseRawData(caseRequestGeneratedId, testCaseRawData, sentCaseRawDataToRepo);
+
+        long notNullApplications = testServiceCaseRequest.getCaseApplications().stream().filter(Objects::nonNull).count();
+        verify(mockApplicationRepo, times((int) notNullApplications)).insertCaseApplication(repoCaseApplicationCaptor.capture());
+        List<com.stratio.casemanagement.model.repository.CaseApplication> sentCaseApplicationsToRepo = repoCaseApplicationCaptor.getAllValues();
+        compareInsertedApplicationListInRepoWithInput(testServiceCaseRequest.getCaseApplications(), sentCaseApplicationsToRepo, caseRequestGeneratedId);
+    }
+
+    private void compareInsertedApplicationInRepoWithInput(CaseApplication fromService, com.stratio.casemanagement.model.repository.CaseApplication fromRepo,
+                                                           Long generatedCaseRequestId) {
+        assertThat(fromRepo.getCaseId(), is(generatedCaseRequestId));
+        assertThat(fromRepo.getAppSeq(), is(fromService.getAppSeq()));
+        assertThat(fromRepo.getProcessId(), is(fromService.getProcessId()));
+        assertThat(fromRepo.getStatus(), is(fromService.getStatus()));
+        assertThat(fromRepo.getLockedBy(), is(fromService.getLockedBy()));
+        assertThat(fromRepo.getCreationDate(), is(notNullValue()));
+        assertThat(fromRepo.getCreationUser(), is(fromService.getCreationUser()));
+        assertThat(fromRepo.getModificationDate(), is(notNullValue()));
+        assertThat(fromRepo.getModificationUser(), is(fromService.getModificationUser()));
+    }
+
+    private void compareInsertedApplicationListInRepoWithInput(List<CaseApplication> serviceList,
+                                                               List<com.stratio.casemanagement.model.repository.CaseApplication> repoList,
+                                                               Long generatedCaseRequestId) {
+        if (!Stream.of(serviceList, repoList).allMatch(Objects::isNull)) {
+            if (Stream.of(serviceList, repoList).anyMatch(Objects::isNull)) {
+                fail("Raw attachment lists are not equal");
+            } else if (serviceList.size() != repoList.size()) {
+                fail("Raw attachment lists are not equal");
+            } else {
+                IntStream.range(0, serviceList.size())
+                        .forEach(i -> compareInsertedApplicationInRepoWithInput(serviceList.get(i), repoList.get(i), generatedCaseRequestId));
+            }
+        }
     }
 
     private void compareInsertedRawAttachmentInRepoWithInput(com.stratio.casemanagement.model.service.CaseRawAttachment fromService,
@@ -143,6 +190,23 @@ public class CaseRequestServiceDefaultTestPost {
         }
     }
 
+    private void compareOutputApplicationsWithInput(CaseRequest inputCaseRequest, CaseRequest outputCaseRequest, List<CaseApplication> resultCaseApplications) {
+        IntStream.range(0, resultCaseApplications.size()).forEach(i -> {
+            CaseApplication resultCaseApplication = resultCaseApplications.get(i);
+            CaseApplication inputCaseApplication = inputCaseRequest.getCaseApplications().get(i);
+
+            assertThat(resultCaseApplication.getCaseId(), is(outputCaseRequest.getId()));
+            assertThat(resultCaseApplication.getAppSeq(), is(inputCaseApplication.getAppSeq()));
+            assertThat(resultCaseApplication.getProcessId(), is(inputCaseApplication.getProcessId()));
+            assertThat(resultCaseApplication.getStatus(), is(inputCaseApplication.getStatus()));
+            assertThat(resultCaseApplication.getLockedBy(), is(inputCaseApplication.getLockedBy()));
+            assertThat(resultCaseApplication.getCreationDate(), is(notNullValue()));
+            assertThat(resultCaseApplication.getCreationUser(), is(inputCaseApplication.getCreationUser()));
+            assertThat(resultCaseApplication.getModificationDate(), is(notNullValue()));
+            assertThat(resultCaseApplication.getModificationUser(), is(inputCaseApplication.getModificationUser()));
+        });
+    }
+
     private void compareOutputRawAttachmentsWithInput(CaseRequest inputCaseRequest, CaseRequest outputCaseRequest,
                                                       List<com.stratio.casemanagement.model.service.CaseRawAttachment> resultCaseRawAttachments) {
         IntStream.range(0, resultCaseRawAttachments.size()).forEach(i -> {
@@ -159,7 +223,28 @@ public class CaseRequestServiceDefaultTestPost {
         CaseRequest caseRequest = podamFactory.manufacturePojo(CaseRequest.class);
         caseRequest.setCreationDate(null);
         caseRequest.setModificationDate(null);
+
+        caseRequest.getCaseApplications().forEach(caseApplication -> {
+            caseApplication.setCreationDate(null);
+            caseApplication.setModificationDate(null);
+        });
+
         return caseRequest;
+    }
+
+    private void testEmptyCaseApplications(List<CaseApplication> emptyApplicationList) {
+        assertTrue("This method only must be used with empty input!!", CollectionUtils.isEmpty(emptyApplicationList));
+
+        // Given
+        final CaseRequest testServiceCaseRequest = generateCaseRequestServiceWithNullDates();
+        testServiceCaseRequest.setCaseApplications(emptyApplicationList);
+
+        // When
+        CaseRequest result = classUnderTest.insertCaseRequest(testServiceCaseRequest);
+
+        // Then
+        verifyInsertResult(testServiceCaseRequest, result);
+        verify(mockApplicationRepo, never()).insertCaseApplication(any(com.stratio.casemanagement.model.repository.CaseApplication.class));
     }
 
     private void testEmptyCaseRawAttachments(List<com.stratio.casemanagement.model.service.CaseRawAttachment> emptyRawAttachmentList) {
@@ -232,6 +317,14 @@ public class CaseRequestServiceDefaultTestPost {
 
         String inputCaseParticipant = inputCaseRequest.getCaseParticipant();
         assertThat(outputCaseRequest.getCaseParticipant(), is(StringUtils.hasText(inputCaseParticipant) ? inputCaseParticipant : null));
+
+        List<CaseApplication> inputCaseApplicationList = inputCaseRequest.getCaseApplications();
+        List<CaseApplication> outputCaseApplicationList = outputCaseRequest.getCaseApplications();
+        if (CollectionUtils.isEmpty(inputCaseApplicationList)) {
+            assertThat(outputCaseApplicationList, is(nullValue()));
+        } else {
+            compareOutputApplicationsWithInput(inputCaseRequest, outputCaseRequest, outputCaseApplicationList);
+        }
     }
 
     private void verifySentCaseRawData(Long createdIdForCaseRequest, String inputRawData, CaseRawData sentRawData) {

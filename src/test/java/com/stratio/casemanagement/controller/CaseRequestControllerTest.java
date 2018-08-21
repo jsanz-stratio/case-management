@@ -2,11 +2,14 @@ package com.stratio.casemanagement.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stratio.casemanagement.config.SwaggerConfiguration;
+import com.stratio.casemanagement.model.controller.CaseApplicationInput;
+import com.stratio.casemanagement.model.controller.CaseRawAttachmentInput;
 import com.stratio.casemanagement.model.controller.CaseRequestInput;
 import com.stratio.casemanagement.model.mapper.CaseRequestControllerInboundMapper;
 import com.stratio.casemanagement.model.mapper.CaseRequestControllerInboundMapperImpl;
 import com.stratio.casemanagement.model.mapper.CaseRequestControllerOutboundMapper;
 import com.stratio.casemanagement.model.mapper.CaseRequestControllerOutboundMapperImpl;
+import com.stratio.casemanagement.model.service.CaseApplication;
 import com.stratio.casemanagement.model.service.CaseRawAttachment;
 import com.stratio.casemanagement.model.service.CaseRequest;
 import com.stratio.casemanagement.service.CaseRequestService;
@@ -25,6 +28,7 @@ import uk.co.jemos.podam.api.PodamFactoryImpl;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.IntStream;
 
 import static com.stratio.casemanagement.config.SwaggerConfiguration.API_PREFIX;
 import static com.stratio.casemanagement.controller.CaseRequestController.API_BASE_PATH;
@@ -91,10 +95,10 @@ public class CaseRequestControllerTest {
                 .andExpect(jsonPath("$.entityId", is(returnedCaseRequestFromService.getEntityId())))
                 .andExpect(jsonPath("$.caseRawData", is(returnedCaseRequestFromService.getCaseRawData())))
                 .andExpect(jsonPath("$.caseRawAttachments", hasSize(returnedCaseRequestFromService.getCaseRawAttachments().size())))
-                .andExpect(jsonPath("$.caseRawAttachments[*].caseId", hasAllCaseIdItems(returnedCaseRequestFromService)))
-                .andExpect(jsonPath("$.caseRawAttachments[*].seqId", hasAllSeqIdItems(returnedCaseRequestFromService)))
-                .andExpect(jsonPath("$.caseRawAttachments[*].data", hasAllDataItems(returnedCaseRequestFromService)))
-                .andExpect(jsonPath("$.caseRawAttachments[*].metadata", hasAllMetadataItems(returnedCaseRequestFromService)))
+                .andExpect(jsonPath("$.caseRawAttachments[*].caseId", hasAllRawAttachmentCaseIdItems(returnedCaseRequestFromService)))
+                .andExpect(jsonPath("$.caseRawAttachments[*].seqId", hasAllRawAttachmentSeqIdItems(returnedCaseRequestFromService)))
+                .andExpect(jsonPath("$.caseRawAttachments[*].data", hasAllRawAttachmentDataItems(returnedCaseRequestFromService)))
+                .andExpect(jsonPath("$.caseRawAttachments[*].metadata", hasAllRawAttachmentMetadataItems(returnedCaseRequestFromService)))
                 .andExpect(jsonPath("$.caseParticipant", is(returnedCaseRequestFromService.getCaseParticipant())))
                 .andExpect(header().string("location", generateExpectedLocationUri(returnedCaseRequestFromService)));
 
@@ -188,11 +192,20 @@ public class CaseRequestControllerTest {
                 .andExpect(jsonPath("$.entityId", is(resultCaseRequestFromService.getEntityId())))
                 .andExpect(jsonPath("$.caseRawData", is(resultCaseRequestFromService.getCaseRawData())))
                 .andExpect(jsonPath("$.caseRawAttachments", hasSize(resultCaseRequestFromService.getCaseRawAttachments().size())))
-                .andExpect(jsonPath("$.caseRawAttachments[*].caseId", hasAllCaseIdItems(resultCaseRequestFromService)))
-                .andExpect(jsonPath("$.caseRawAttachments[*].seqId", hasAllSeqIdItems(resultCaseRequestFromService)))
-                .andExpect(jsonPath("$.caseRawAttachments[*].data", hasAllDataItems(resultCaseRequestFromService)))
-                .andExpect(jsonPath("$.caseRawAttachments[*].metadata", hasAllMetadataItems(resultCaseRequestFromService)))
-                .andExpect(jsonPath("$.caseParticipant", is(resultCaseRequestFromService.getCaseParticipant())));
+                .andExpect(jsonPath("$.caseRawAttachments[*].caseId", hasAllRawAttachmentCaseIdItems(resultCaseRequestFromService)))
+                .andExpect(jsonPath("$.caseRawAttachments[*].seqId", hasAllRawAttachmentSeqIdItems(resultCaseRequestFromService)))
+                .andExpect(jsonPath("$.caseRawAttachments[*].data", hasAllRawAttachmentDataItems(resultCaseRequestFromService)))
+                .andExpect(jsonPath("$.caseRawAttachments[*].metadata", hasAllRawAttachmentMetadataItems(resultCaseRequestFromService)))
+                .andExpect(jsonPath("$.caseParticipant", is(resultCaseRequestFromService.getCaseParticipant())))
+                .andExpect(jsonPath("$.caseApplications[*].caseId", hasAllApplicationCaseIdItems(resultCaseRequestFromService)))
+                .andExpect(jsonPath("$.caseApplications[*].appSeq", hasAllApplicationAppSeqItems(resultCaseRequestFromService)))
+                .andExpect(jsonPath("$.caseApplications[*].processId", hasAllApplicationProcessIdItems(resultCaseRequestFromService)))
+                .andExpect(jsonPath("$.caseApplications[*].status", hasAllApplicationStatusItems(resultCaseRequestFromService)))
+                .andExpect(jsonPath("$.caseApplications[*].lockedBy", hasAllApplicationLockedByItems(resultCaseRequestFromService)))
+                .andExpect(jsonPath("$.caseApplications[*].creationDate", hasAllApplicationCreationDateItems(resultCaseRequestFromService)))
+                .andExpect(jsonPath("$.caseApplications[*].creationUser", hasAllApplicationCreationUserItems(resultCaseRequestFromService)))
+                .andExpect(jsonPath("$.caseApplications[*].modificationDate", hasAllApplicationModificationDateItems(resultCaseRequestFromService)))
+                .andExpect(jsonPath("$.caseApplications[*].modificationUser", hasAllApplicationModificationUserItems(resultCaseRequestFromService)));
 
 
         verify(mockService).getCaseRequestById(eq(testId));
@@ -267,19 +280,57 @@ public class CaseRequestControllerTest {
         return API_PREFIX + API_VERSION + API_BASE_PATH + "/" + resultCaseRequestFromService.getId();
     }
 
-    private Matcher<Iterable<? extends Long>> hasAllCaseIdItems(CaseRequest resultCaseRequestFromService) {
+    private Matcher<Iterable<? extends Long>> hasAllApplicationAppSeqItems(CaseRequest resultCaseRequestFromService) {
+        return containsInAnyOrder(resultCaseRequestFromService.getCaseApplications().stream().map(CaseApplication::getAppSeq).toArray(Long[]::new));
+    }
+
+    private Matcher<Iterable<? extends Long>> hasAllApplicationCaseIdItems(CaseRequest resultCaseRequestFromService) {
+        return containsInAnyOrder(resultCaseRequestFromService.getCaseApplications().stream().map(CaseApplication::getCaseId).toArray(Long[]::new));
+    }
+
+    private Matcher<Iterable<? extends String>> hasAllApplicationCreationDateItems(CaseRequest resultCaseRequestFromService) {
+        return containsInAnyOrder(
+                resultCaseRequestFromService.getCaseApplications().stream().map(app -> app.getCreationDate().toString()).toArray(String[]::new));
+    }
+
+    private Matcher<Iterable<? extends String>> hasAllApplicationCreationUserItems(CaseRequest resultCaseRequestFromService) {
+        return containsInAnyOrder(resultCaseRequestFromService.getCaseApplications().stream().map(CaseApplication::getCreationUser).toArray(String[]::new));
+    }
+
+    private Matcher<Iterable<? extends String>> hasAllApplicationLockedByItems(CaseRequest resultCaseRequestFromService) {
+        return containsInAnyOrder(resultCaseRequestFromService.getCaseApplications().stream().map(CaseApplication::getLockedBy).toArray(String[]::new));
+    }
+
+    private Matcher<Iterable<? extends String>> hasAllApplicationModificationDateItems(CaseRequest resultCaseRequestFromService) {
+        return containsInAnyOrder(
+                resultCaseRequestFromService.getCaseApplications().stream().map(app -> app.getModificationDate().toString()).toArray(String[]::new));
+    }
+
+    private Matcher<Iterable<? extends String>> hasAllApplicationModificationUserItems(CaseRequest resultCaseRequestFromService) {
+        return containsInAnyOrder(resultCaseRequestFromService.getCaseApplications().stream().map(CaseApplication::getModificationUser).toArray(String[]::new));
+    }
+
+    private Matcher<Iterable<? extends String>> hasAllApplicationProcessIdItems(CaseRequest resultCaseRequestFromService) {
+        return containsInAnyOrder(resultCaseRequestFromService.getCaseApplications().stream().map(CaseApplication::getProcessId).toArray(String[]::new));
+    }
+
+    private Matcher<Iterable<? extends String>> hasAllApplicationStatusItems(CaseRequest resultCaseRequestFromService) {
+        return containsInAnyOrder(resultCaseRequestFromService.getCaseApplications().stream().map(CaseApplication::getStatus).toArray(String[]::new));
+    }
+
+    private Matcher<Iterable<? extends Long>> hasAllRawAttachmentCaseIdItems(CaseRequest resultCaseRequestFromService) {
         return containsInAnyOrder(resultCaseRequestFromService.getCaseRawAttachments().stream().map(CaseRawAttachment::getCaseId).toArray(Long[]::new));
     }
 
-    private Matcher<Iterable<? extends String>> hasAllDataItems(CaseRequest resultCaseRequestFromService) {
+    private Matcher<Iterable<? extends String>> hasAllRawAttachmentDataItems(CaseRequest resultCaseRequestFromService) {
         return containsInAnyOrder(resultCaseRequestFromService.getCaseRawAttachments().stream().map(CaseRawAttachment::getData).toArray(String[]::new));
     }
 
-    private Matcher<Iterable<? extends String>> hasAllMetadataItems(CaseRequest resultCaseRequestFromService) {
+    private Matcher<Iterable<? extends String>> hasAllRawAttachmentMetadataItems(CaseRequest resultCaseRequestFromService) {
         return containsInAnyOrder(resultCaseRequestFromService.getCaseRawAttachments().stream().map(CaseRawAttachment::getMetadata).toArray(String[]::new));
     }
 
-    private Matcher<Iterable<? extends Long>> hasAllSeqIdItems(CaseRequest resultCaseRequestFromService) {
+    private Matcher<Iterable<? extends Long>> hasAllRawAttachmentSeqIdItems(CaseRequest resultCaseRequestFromService) {
         return containsInAnyOrder(resultCaseRequestFromService.getCaseRawAttachments().stream().map(CaseRawAttachment::getSeqId).toArray(Long[]::new));
     }
 
@@ -288,12 +339,40 @@ public class CaseRequestControllerTest {
         assertThat(caseRequestForServiceCall.getCreationDate(), is(nullValue()));
         assertThat(caseRequestForServiceCall.getModificationDate(), is(nullValue()));
         assertThat(caseRequestForServiceCall.getEntityId(), is(testCaseRequest.getEntityId()));
+        assertThat(caseRequestForServiceCall.getCaseParticipant(), is(testCaseRequest.getCaseParticipant()));
+        assertThat(caseRequestForServiceCall.getCaseRawData(), is(testCaseRequest.getCaseRawData()));
+
+        IntStream.range(0, caseRequestForServiceCall.getCaseRawAttachments().size()).forEach(i -> {
+            CaseRawAttachment caseRawAttachmentItemForServiceCall = caseRequestForServiceCall.getCaseRawAttachments().get(i);
+            CaseRawAttachmentInput testCaseRawAttachmentItem = testCaseRequest.getCaseRawAttachments().get(i);
+            assertThat(caseRawAttachmentItemForServiceCall.getCaseId(), is(nullValue()));
+            assertThat(caseRawAttachmentItemForServiceCall.getSeqId(), is(nullValue()));
+            assertThat(caseRawAttachmentItemForServiceCall.getData(), is(testCaseRawAttachmentItem.getData()));
+            assertThat(caseRawAttachmentItemForServiceCall.getMetadata(), is(testCaseRawAttachmentItem.getMetadata()));
+        });
+
+        IntStream.range(0, caseRequestForServiceCall.getCaseApplications().size()).forEach(i -> {
+            CaseApplication caseApplicationItemForServiceCall = caseRequestForServiceCall.getCaseApplications().get(i);
+            CaseApplicationInput testCaseApplicationItem = testCaseRequest.getCaseApplications().get(i);
+            assertThat(caseApplicationItemForServiceCall.getCaseId(), is(nullValue()));
+            assertThat(caseApplicationItemForServiceCall.getAppSeq(), is(nullValue()));
+            assertThat(caseApplicationItemForServiceCall.getProcessId(), is(testCaseApplicationItem.getProcessId()));
+            assertThat(caseApplicationItemForServiceCall.getStatus(), is(testCaseApplicationItem.getStatus()));
+            assertThat(caseApplicationItemForServiceCall.getLockedBy(), is(testCaseApplicationItem.getLockedBy()));
+            assertThat(caseApplicationItemForServiceCall.getCreationDate(), is(nullValue()));
+            assertThat(caseApplicationItemForServiceCall.getModificationDate(), is(nullValue()));
+        });
     }
 
     private void verifyServiceCallForCreation(CaseRequestInput testCaseRequest, CaseRequest caseRequestForServiceCall) {
         verifyServiceCallCommonParameters(testCaseRequest, caseRequestForServiceCall);
-        assertThat(caseRequestForServiceCall.getCreationUser(), is(testCaseRequest.getOperationUser()));
-        assertThat(caseRequestForServiceCall.getModificationUser(), is(testCaseRequest.getOperationUser()));
+        String operationUser = testCaseRequest.getOperationUser();
+        assertThat(caseRequestForServiceCall.getCreationUser(), is(operationUser));
+        assertThat(caseRequestForServiceCall.getModificationUser(), is(operationUser));
+        caseRequestForServiceCall.getCaseApplications().forEach(app -> {
+            assertThat(app.getCreationUser(), is(operationUser));
+            assertThat(app.getModificationUser(), is(operationUser));
+        });
     }
 
     private void verifyServiceCallForUpdate(CaseRequestInput testCaseRequest, CaseRequest caseRequestForServiceCall) {

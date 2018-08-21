@@ -1,0 +1,29 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.stratio.casemanagement.repository.CaseApplicationRepository">
+
+    <resultMap id="caseApplicationResult" type="com.stratio.casemanagement.model.repository.CaseApplication">
+        <result property="caseId" column="case_id" />
+        <result property="appSeq" column="appseq" />
+        <result property="processId" column="process_id" />
+        <result property="status" column="status" />
+        <result property="lockedBy" column="lockedby" />
+        <result property="creationDate" column="creation_date" />
+        <result property="creationUser" column="creation_user" />
+        <result property="modificationDate" column="modification_date" />
+        <result property="modificationUser" column="modification_user" />
+    </resultMap>
+
+    <insert id="insertCaseApplication" useGeneratedKeys="true" keyProperty="appSeq" keyColumn="appseq">
+        INSERT INTO
+        applications.case_application(case_id, appseq, process_id, status, lockedby, creation_date, creation_user, modification_date, modification_user)
+        VALUES
+        (#{caseId}, #{appSeq}, #{processId}, #{status}, #{lockedBy}, #{creationDate}, #{creationUser}, #{modificationDate}, #{modificationUser})
+    </insert>
+
+    <select id="getCaseApplicationListByCaseId" resultMap="caseApplicationResult">
+        SELECT case_id, appseq, process_id, status, lockedby, creation_date, creation_user, modification_date, modification_user
+        FROM applications.case_application
+        WHERE case_id = #{caseId}
+    </select>
+</mapper>

@@ -5,6 +5,8 @@ import com.stratio.casemanagement.model.controller.CaseRequestInput;
 import com.stratio.casemanagement.model.controller.CaseRequestOutput;
 import com.stratio.casemanagement.model.mapper.CaseRequestControllerInboundMapper;
 import com.stratio.casemanagement.model.mapper.CaseRequestControllerOutboundMapper;
+import com.stratio.casemanagement.model.service.CaseApplication;
+import com.stratio.casemanagement.model.service.CaseRequest;
 import com.stratio.casemanagement.service.CaseRequestService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.util.function.Consumer;
 
 import static com.stratio.casemanagement.controller.CaseRequestController.API_BASE_PATH;
 import static com.stratio.casemanagement.controller.CaseRequestController.API_VERSION;
@@ -43,7 +46,9 @@ public class CaseRequestController {
         log.info("Entering request (POST) {}{}", API_VERSION, API_BASE_PATH);
         log.debug("Entering CaseRequestController.createCaseRequest with parameters: {}", caseRequest);
 
-        CaseRequestOutput result = outMapper.mapCaseRequestFromService(caseRequestService.insertCaseRequest(inMapper.mapForCreate(caseRequest)));
+        CaseRequest serviceInputCaseRequest = inMapper.mapForCreate(caseRequest);
+        serviceInputCaseRequest.getCaseApplications().forEach(expandOperationUserIntoCaseApplications(caseRequest));
+        CaseRequestOutput result = outMapper.mapCaseRequestFromService(caseRequestService.insertCaseRequest(serviceInputCaseRequest));
 
         log.debug("Exiting CaseRequestController.createCaseRequest with result: {}", result);
 
@@ -64,7 +69,7 @@ public class CaseRequestController {
 
         return getResponseWithAffectedRows(affectedRows);
 
-        // TODO: No cascade delete on case_raw_data, case_participant
+        // TODO: No cascade delete on case_raw_data, case_participant, case_raw_attachment, case_application and application_activity_context
     }
 
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -97,7 +102,14 @@ public class CaseRequestController {
 
         return getResponseWithAffectedRows(affectedRows);
 
-        // TODO: No update on case_raw_data, case_participant
+        // TODO: No update on case_raw_data, case_participant, case_raw_attachment, case_application and application_activity_context
+    }
+
+    private Consumer<CaseApplication> expandOperationUserIntoCaseApplications(CaseRequestInput caseRequest) {
+        return app -> {
+            app.setCreationUser(caseRequest.getOperationUser());
+            app.setModificationUser(caseRequest.getOperationUser());
+        };
     }
 
     private String generateLocationURIForCaseRequest(CaseRequestOutput response) {

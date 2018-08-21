@@ -16,4 +16,5 @@ public class CaseRequestOutput {
     private String caseRawData;
     private List<CaseRawAttachmentOutput> caseRawAttachments;
     private String caseParticipant;
+    private List<CaseApplicationOutput> caseApplications;
 }

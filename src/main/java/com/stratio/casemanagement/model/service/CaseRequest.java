@@ -19,11 +19,19 @@ public class CaseRequest {
     private String caseRawData;
     private List<CaseRawAttachment> caseRawAttachments;
     private String caseParticipant;
+    private List<CaseApplication> caseApplications;
 
     public void addCaseRawAttachment(CaseRawAttachment caseRawAttachment) {
         if (Objects.isNull(caseRawAttachments)) {
             caseRawAttachments = new ArrayList<>();
         }
         caseRawAttachments.add(caseRawAttachment);
+    }
+
+    public void addCaseApplication(CaseApplication caseApplication) {
+        if (Objects.isNull(caseApplications)) {
+            caseApplications = new ArrayList<>();
+        }
+        caseApplications.add(caseApplication);
     }
 }
